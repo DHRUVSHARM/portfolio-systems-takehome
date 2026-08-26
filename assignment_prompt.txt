@@ -1,0 +1,34 @@
+SYSTEMS TAKE-HOME
+
+Goal:
+Stand up the provided multi-agent portfolio workflow using an open-weight LLM and an inference server, run 100 queries through the workflow, collect meaningful inference/workflow statistics, and analyze the resulting cost and performance characteristics.
+
+Requirements:
+
+1. Pick a workflow (multi-agentic application).
+   - Use the provided portfolio_clean workflow.
+
+2. Pick an open-weight LLM.
+
+3. Pick an inference server.
+
+4. Run a database of 100 queries on the workflow.
+   - Use the provided queries.json dataset.
+
+5. Compute key metrics of choice.
+   Suggested metrics include:
+   - Total cost
+   - Cost per query
+   - Percentage of cost per agent
+   - Cost-per-query distribution
+   - Additional useful serving/inference metrics where appropriate
+
+6. Submit the work.
+   - A video walkthrough/demo is optional.
+
+Working Direction:
+- Workflow: portfolio_clean
+- Query source: queries.json
+- Inference server: likely vLLM
+- Model: to be selected after inspecting workflow requirements and available compute
+- Focus: build a reproducible end-to-end inference benchmark with useful observability and cost/performance analysis
