@@ -1,0 +1,14 @@
+name: reference_local
+version: "2026-08-27"
+currency: USD
+machine_hourly_usd: 0.0
+cpu_pool_fraction: 0.35
+gpu_pool_fraction: 0.45
+overhead_pool_fraction: 0.20
+cpu_attribution_method: cpu_seconds
+gpu_attribution_method: shared_token_work
+prefill_token_weight: 1.0
+decode_token_weight: 4.0
+notes: >
+  Local/reference profile for deterministic tests and dry runs. Phase 8 records
+  the actual rented machine hourly rate for canonical cloud experiments.

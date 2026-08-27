@@ -1,0 +1,111 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres-historical-analytics"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT run_id, dataset_mode, selected_query_count, benchmark_concurrency, model, max_num_seqs, total_run_cost_usd, request_cost_sum_usd, duration_seconds FROM experiment_cost_comparison ORDER BY run_id;",
+          "refId": "A"
+        }
+      ],
+      "title": "Experiment Comparison",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres-historical-analytics"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT run_id, agent, calls, cpu_seconds, wall_time_ms, p95_latency_ms, attributed_cost_usd, cost_percentage, failures FROM agent_cost_breakdown ORDER BY run_id, agent;",
+          "refId": "A"
+        }
+      ],
+      "title": "Agent Cost Breakdown",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres-historical-analytics"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT r.run_id, r.query_id, r.n_holdings, r.lookback_days, r.phrasing, r.client_latency_ms, c.total_cost_usd, c.success FROM requests r JOIN request_cost_attributions c ON c.request_id = r.request_id ORDER BY r.run_id, r.query_id;",
+          "refId": "A"
+        }
+      ],
+      "title": "Query Workload Shape",
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "portfolio",
+    "historical",
+    "phase7"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "title": "Portfolio Historical Analytics",
+  "uid": "portfolio-historical-analytics",
+  "version": 1
+}

@@ -16,3 +16,16 @@ datasources:
     type: loki
     access: proxy
     url: http://loki:3100
+
+  - name: PostgreSQL Historical Analytics
+    uid: postgres-historical-analytics
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: portfolio_analytics
+    user: ${POSTGRES_USER}
+    jsonData:
+      postgresVersion: 1500
+      sslmode: disable
+    secureJsonData:
+      password: ${POSTGRES_PASSWORD}
