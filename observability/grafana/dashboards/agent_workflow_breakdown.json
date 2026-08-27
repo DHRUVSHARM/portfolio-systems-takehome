@@ -1,0 +1,14 @@
+{
+  "title": "Agent / Workflow Breakdown",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {"type": "timeseries", "title": "Agent Call Volume", "targets": [{"expr": "sum(rate(portfolio_agent_calls_total[5m])) by (agent, status)"}]},
+    {"type": "timeseries", "title": "Per-Agent p50/p95/p99", "targets": [{"expr": "histogram_quantile(0.50, sum(rate(portfolio_agent_call_duration_seconds_bucket[5m])) by (le, agent))"}, {"expr": "histogram_quantile(0.95, sum(rate(portfolio_agent_call_duration_seconds_bucket[5m])) by (le, agent))"}, {"expr": "histogram_quantile(0.99, sum(rate(portfolio_agent_call_duration_seconds_bucket[5m])) by (le, agent))"}]},
+    {"type": "timeseries", "title": "Agent Error Rate", "targets": [{"expr": "sum(rate(portfolio_agent_errors_total[5m])) by (agent, error_type)"}]},
+    {"type": "timeseries", "title": "Tool Call Volume / Latency", "targets": [{"expr": "sum(rate(portfolio_tool_calls_total[5m])) by (agent, tool)"}, {"expr": "histogram_quantile(0.95, sum(rate(portfolio_tool_call_duration_seconds_bucket[5m])) by (le, agent, tool))"}]},
+    {"type": "timeseries", "title": "Metrics Fan-Out", "targets": [{"expr": "portfolio_metric_tasks_running"}, {"expr": "portfolio_metric_tasks_waiting"}]},
+    {"type": "timeseries", "title": "CPU Worker Saturation", "targets": [{"expr": "portfolio_workflow_cpu_slots_used"}, {"expr": "portfolio_workflow_cpu_slots_waiting"}]},
+    {"type": "timeseries", "title": "Risk / Advisor Latency", "targets": [{"expr": "histogram_quantile(0.95, sum(rate(portfolio_agent_call_duration_seconds_bucket{agent=\"RiskAgent\"}[5m])) by (le))"}, {"expr": "histogram_quantile(0.95, sum(rate(portfolio_agent_call_duration_seconds_bucket{agent=\"AdvisorAgent\"}[5m])) by (le))"}]}
+  ]
+}

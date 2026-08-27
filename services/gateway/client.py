@@ -7,6 +7,8 @@ from typing import Any
 
 import httpx
 
+from portfolio.portfolio.observability import start_as_current_span
+
 from .config import GatewayConfig
 
 
@@ -56,11 +58,19 @@ class PortfolioApiClient:
             raise RuntimeError("portfolio client is closed")
 
         try:
-            response = await self._client.post(
-                "/internal/analyze",
-                json=payload,
-                headers=headers,
-            )
+            with start_as_current_span(
+                "portfolio.request",
+                {
+                    "stage": "portfolio",
+                    "n_holdings": len(payload.get("holdings", {})),
+                    "lookback_days": payload.get("lookback_days"),
+                },
+            ):
+                response = await self._client.post(
+                    "/internal/analyze",
+                    json=payload,
+                    headers=headers,
+                )
         except httpx.TimeoutException as exc:
             raise DownstreamTimeoutError("portfolio request timed out") from exc
         except httpx.RequestError as exc:

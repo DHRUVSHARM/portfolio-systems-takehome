@@ -12,6 +12,7 @@ from uuid import uuid4
 
 import httpx
 
+from ..observability import inject_trace_context, start_as_current_span
 from .artifacts import write_run_artifacts
 from .config import BenchmarkConfig
 from .datasets import (
@@ -201,7 +202,19 @@ async def _issue_request(
     response_body: Any = None
 
     try:
-        response = await client.post("/v1/analyze", json=payload, headers=headers)
+        with start_as_current_span(
+            "benchmark.request",
+            {
+                "run_id": run_id,
+                "request_id": request_id,
+                "query_id": query_id,
+                "n_holdings": int(record["n_holdings"]),
+                "lookback_days": lookback_days,
+            },
+        ):
+            response = await client.post(
+                "/v1/analyze", json=payload, headers=inject_trace_context(headers)
+            )
         status = response.status_code
         if 200 <= response.status_code < 300:
             try:

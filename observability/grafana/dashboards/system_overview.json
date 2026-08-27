@@ -1,0 +1,13 @@
+{
+  "title": "System Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {"type": "timeseries", "title": "Gateway RPS", "targets": [{"expr": "sum(rate(gateway_requests_total[1m]))"}]},
+    {"type": "timeseries", "title": "Gateway p95/p99", "targets": [{"expr": "histogram_quantile(0.95, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))"}, {"expr": "histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))"}]},
+    {"type": "timeseries", "title": "Gateway Inflight / Queue", "targets": [{"expr": "gateway_inflight_requests"}, {"expr": "gateway_queued_requests"}]},
+    {"type": "timeseries", "title": "Portfolio Active Workflows", "targets": [{"expr": "portfolio_workflows_active"}]},
+    {"type": "timeseries", "title": "vLLM Running / Waiting", "targets": [{"expr": "sum({__name__=~\"vllm:.*running.*|vllm_.*running.*\"})"}, {"expr": "sum({__name__=~\"vllm:.*waiting.*|vllm_.*waiting.*\"})"}]},
+    {"type": "timeseries", "title": "Host CPU / Memory / GPU", "targets": [{"expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))"}, {"expr": "1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes"}, {"expr": "avg(DCGM_FI_DEV_GPU_UTIL)"}]}
+  ]
+}

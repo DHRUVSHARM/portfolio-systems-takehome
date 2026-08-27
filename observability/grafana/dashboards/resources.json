@@ -1,0 +1,12 @@
+{
+  "title": "Resources",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {"type": "timeseries", "title": "Host CPU / Load", "targets": [{"expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))"}, {"expr": "node_load1"}]},
+    {"type": "timeseries", "title": "Host RAM / Swap", "targets": [{"expr": "1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes"}, {"expr": "1 - node_memory_SwapFree_bytes / clamp_min(node_memory_SwapTotal_bytes, 1)"}]},
+    {"type": "timeseries", "title": "Disk / Network", "targets": [{"expr": "rate(node_disk_read_bytes_total[5m]) + rate(node_disk_written_bytes_total[5m])"}, {"expr": "rate(node_network_receive_bytes_total[5m]) + rate(node_network_transmit_bytes_total[5m])"}]},
+    {"type": "timeseries", "title": "Container CPU / RAM / Network", "targets": [{"expr": "sum(rate(container_cpu_usage_seconds_total[5m])) by (name)"}, {"expr": "sum(container_memory_working_set_bytes) by (name)"}, {"expr": "sum(rate(container_network_receive_bytes_total[5m]) + rate(container_network_transmit_bytes_total[5m])) by (name)"}]},
+    {"type": "timeseries", "title": "GPU Util / VRAM / Power / Temp / Energy", "targets": [{"expr": "avg(DCGM_FI_DEV_GPU_UTIL)"}, {"expr": "sum(DCGM_FI_DEV_FB_USED)"}, {"expr": "avg(DCGM_FI_DEV_POWER_USAGE)"}, {"expr": "avg(DCGM_FI_DEV_GPU_TEMP)"}, {"expr": "sum(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION)"}]}
+  ]
+}

@@ -9,6 +9,7 @@ import httpx
 
 from .config import InferenceClientConfig
 from .models import InferenceResult
+from ..observability import start_as_current_span
 
 
 class InferenceError(RuntimeError):
@@ -69,32 +70,47 @@ class OpenAICompatibleInferenceClient:
         started = time.perf_counter()
 
         for attempt in range(1, max_attempts + 1):
-            try:
-                response = await self._client.post(
-                    self.config.chat_completions_url,
-                    json=payload,
-                    headers=headers,
-                )
-            except httpx.TimeoutException as exc:
-                last_error = InferenceConnectionError(
-                    f"inference request timed out: {exc}"
-                )
-            except httpx.RequestError as exc:
-                last_error = InferenceConnectionError(
-                    f"inference request failed: {exc}"
-                )
-            else:
-                if response.status_code < 200 or response.status_code >= 300:
-                    raise InferenceHTTPStatusError(
-                        response.status_code,
-                        f"inference endpoint returned HTTP {response.status_code}",
+            with start_as_current_span(
+                "inference.request",
+                {
+                    "model": self.config.model,
+                    "inference.retry_count": self.config.retry_count,
+                    "inference.attempt": attempt,
+                },
+            ) as span:
+                try:
+                    response = await self._client.post(
+                        self.config.chat_completions_url,
+                        json=payload,
+                        headers=headers,
                     )
-                finished = time.perf_counter()
-                return self._parse_response(
-                    response=response,
-                    elapsed_ms=(finished - started) * 1000.0,
-                    attempt_count=attempt,
-                )
+                except httpx.TimeoutException as exc:
+                    last_error = InferenceConnectionError(
+                        f"inference request timed out: {exc}"
+                    )
+                except httpx.RequestError as exc:
+                    last_error = InferenceConnectionError(
+                        f"inference request failed: {exc}"
+                    )
+                else:
+                    span.set_attribute("http.status_code", response.status_code)
+                    if response.status_code < 200 or response.status_code >= 300:
+                        raise InferenceHTTPStatusError(
+                            response.status_code,
+                            f"inference endpoint returned HTTP {response.status_code}",
+                        )
+                    finished = time.perf_counter()
+                    result = self._parse_response(
+                        response=response,
+                        elapsed_ms=(finished - started) * 1000.0,
+                        attempt_count=attempt,
+                    )
+                    span.set_attribute("llm.prompt_tokens", result.prompt_tokens or 0)
+                    span.set_attribute(
+                        "llm.completion_tokens", result.completion_tokens or 0
+                    )
+                    span.set_attribute("llm.total_tokens", result.total_tokens or 0)
+                    return result
 
             if attempt == max_attempts and last_error is not None:
                 raise last_error

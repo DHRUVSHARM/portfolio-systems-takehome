@@ -1,0 +1,13 @@
+{
+  "title": "vLLM Inference",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {"type": "timeseries", "title": "Running / Waiting", "targets": [{"expr": "sum({__name__=~\"vllm:.*running.*|vllm_.*running.*\"})"}, {"expr": "sum({__name__=~\"vllm:.*waiting.*|vllm_.*waiting.*\"})"}]},
+    {"type": "timeseries", "title": "TTFT / Inter-token", "targets": [{"expr": "histogram_quantile(0.95, sum(rate({__name__=~\"vllm:.*ttft.*bucket|vllm_.*ttft.*bucket\"}[5m])) by (le))"}, {"expr": "histogram_quantile(0.95, sum(rate({__name__=~\"vllm:.*time_per_output_token.*bucket|vllm_.*inter_token.*bucket\"}[5m])) by (le))"}]},
+    {"type": "timeseries", "title": "Queue / Prefill / Decode", "targets": [{"expr": "sum(rate({__name__=~\"vllm:.*queue.*sum|vllm_.*queue.*sum\"}[5m]))"}, {"expr": "sum(rate({__name__=~\"vllm:.*prefill.*sum|vllm_.*prefill.*sum\"}[5m]))"}, {"expr": "sum(rate({__name__=~\"vllm:.*decode.*sum|vllm_.*decode.*sum\"}[5m]))"}]},
+    {"type": "timeseries", "title": "Prompt / Completion Tokens", "targets": [{"expr": "sum(rate({__name__=~\"vllm:.*prompt.*token.*|vllm_.*prompt.*token.*\"}[5m]))"}, {"expr": "sum(rate({__name__=~\"vllm:.*generation.*token.*|vllm_.*completion.*token.*\"}[5m]))"}]},
+    {"type": "timeseries", "title": "KV / Prefix Cache / Preemptions", "targets": [{"expr": "max({__name__=~\"vllm:.*kv.*usage.*|vllm_.*kv.*usage.*\"})"}, {"expr": "sum(rate({__name__=~\"vllm:.*prefix.*cache.*hit.*|vllm_.*prefix.*cache.*hit.*\"}[5m]))"}, {"expr": "sum(rate({__name__=~\"vllm:.*preemption.*|vllm_.*preemption.*\"}[5m]))"}]},
+    {"type": "timeseries", "title": "GPU", "targets": [{"expr": "avg(DCGM_FI_DEV_GPU_UTIL)"}, {"expr": "sum(DCGM_FI_DEV_FB_USED)"}, {"expr": "avg(DCGM_FI_DEV_POWER_USAGE)"}]}
+  ]
+}

@@ -9,8 +9,11 @@ from functools import partial
 import threading
 from typing import Any
 
+from opentelemetry import context as otel_context
+
 from ..agents.advisor_agent import AdvisorAgent
 from ..agents.metrics_agent import MetricsAgent
+from ..observability import log_event, portfolio_metrics, start_as_current_span
 from ..agents.risk_agent import RiskAgent
 from .config import WorkflowRuntimeConfig
 from .context import RequestContext
@@ -34,6 +37,7 @@ class PortfolioRuntime:
         self._executor = ThreadPoolExecutor(max_workers=config.cpu_workers)
         self._cpu_semaphore = asyncio.Semaphore(config.cpu_workers)
         self._metric_semaphore = asyncio.Semaphore(config.max_concurrent_metric_tasks)
+        self._cpu_waiting_count = 0
         self._closed = False
 
     async def analyze(
@@ -50,50 +54,76 @@ class PortfolioRuntime:
         context = context or RequestContext()
         tickers = list(holdings.keys())
 
-        metric_tasks = [
-            asyncio.create_task(
-                self._compute_metric(ticker, lookback_days, context),
-                name=f"portfolio-metric-{ticker}",
+        with start_as_current_span(
+            "portfolio.workflow",
+            {
+                "stage": "portfolio",
+                "n_holdings": len(tickers),
+                "lookback_days": lookback_days,
+                "run_id": context.run_id,
+                "request_id": context.request_id,
+                "query_id": context.query_id,
+            },
+        ), portfolio_metrics.workflow_timer():
+            log_event(
+                logger_name="portfolio.runtime",
+                event="workflow_started",
+                context=context,
+                stage="portfolio",
+                n_holdings=len(tickers),
+                lookback_days=lookback_days,
             )
-            for ticker in tickers
-        ]
+            metric_tasks = [
+                asyncio.create_task(
+                    self._compute_metric(ticker, lookback_days, context),
+                    name=f"portfolio-metric-{ticker}",
+                )
+                for ticker in tickers
+            ]
 
-        try:
-            metric_results = await asyncio.gather(*metric_tasks)
-        except BaseException:
-            for task in metric_tasks:
-                if not task.done():
-                    task.cancel()
-            await asyncio.gather(*metric_tasks, return_exceptions=True)
-            raise
+            try:
+                metric_results = await asyncio.gather(*metric_tasks)
+            except BaseException:
+                for task in metric_tasks:
+                    if not task.done():
+                        task.cancel()
+                await asyncio.gather(*metric_tasks, return_exceptions=True)
+                raise
 
-        per_ticker = dict(zip(tickers, metric_results))
+            per_ticker = dict(zip(tickers, metric_results))
 
-        risk = await self._run_cpu(
-            self.risk_agent.assess, holdings=holdings, metrics=per_ticker
-        )
+            risk = await self._run_cpu(
+                self.risk_agent.assess, holdings=holdings, metrics=per_ticker
+            )
 
-        summary = await self._summarize(
-            holdings=holdings,
-            metrics=per_ticker,
-            risk=risk,
-            context=context,
-        )
+            summary = await self._summarize(
+                holdings=holdings,
+                metrics=per_ticker,
+                risk=risk,
+                context=context,
+            )
 
-        metrics_view = {
-            ticker: {
-                key: value for key, value in metrics.items() if key != "returns"
+            metrics_view = {
+                ticker: {
+                    key: value for key, value in metrics.items() if key != "returns"
+                }
+                for ticker, metrics in per_ticker.items()
             }
-            for ticker, metrics in per_ticker.items()
-        }
+            log_event(
+                logger_name="portfolio.runtime",
+                event="workflow_completed",
+                context=context,
+                stage="portfolio",
+                status="success",
+            )
 
-        return {
-            "holdings": holdings,
-            "lookback_days": lookback_days,
-            "metrics": metrics_view,
-            "risk": risk,
-            "summary": summary,
-        }
+            return {
+                "holdings": holdings,
+                "lookback_days": lookback_days,
+                "metrics": metrics_view,
+                "risk": risk,
+                "summary": summary,
+            }
 
     async def close(self) -> None:
         advisor_close = getattr(self.advisor, "aclose", None)
@@ -123,35 +153,66 @@ class PortfolioRuntime:
         self, ticker: str, lookback_days: int, context: RequestContext
     ) -> dict:
         del context
-        await self._metric_semaphore.acquire()
-        return await self._run_cpu(
-            self.metrics_agent.compute,
-            acquired_semaphores=(self._metric_semaphore,),
-            ticker=ticker,
-            lookback_days=lookback_days,
-        )
+        portfolio_metrics.metric_tasks_waiting.inc()
+        waiting = True
+        try:
+            await self._metric_semaphore.acquire()
+            portfolio_metrics.metric_tasks_waiting.dec()
+            waiting = False
+            portfolio_metrics.metric_tasks_running.inc()
+            return await self._run_cpu(
+                self.metrics_agent.compute,
+                acquired_semaphores=(self._metric_semaphore,),
+                ticker=ticker,
+                lookback_days=lookback_days,
+            )
+        finally:
+            if waiting:
+                portfolio_metrics.metric_tasks_waiting.dec()
+            else:
+                portfolio_metrics.metric_tasks_running.dec()
 
     async def _run_cpu(self, func, /, acquired_semaphores=(), **kwargs):
         future = None
-        loop = asyncio.get_running_loop()
         cpu_acquired = False
+        cpu_waiting = True
+        release_in_finally = True
+        self._cpu_waiting_count += 1
+        self._record_cpu_slots()
         try:
             await self._cpu_semaphore.acquire()
+            self._cpu_waiting_count -= 1
+            cpu_waiting = False
             cpu_acquired = True
-            future = self._executor.submit(partial(func, **kwargs))
-            return await asyncio.wrap_future(future)
+            self._record_cpu_slots()
+            call = partial(func, **kwargs)
+            current_context = otel_context.get_current()
+            future = self._executor.submit(
+                _run_with_otel_context, current_context, call
+            )
+            while not future.done():
+                await asyncio.sleep(0.001)
+            return future.result()
+        except asyncio.CancelledError:
+            if future is not None:
+                future.cancel()
+                while not future.done():
+                    await asyncio.sleep(0.001)
+            raise
         finally:
             if future is None:
+                if cpu_waiting:
+                    self._cpu_waiting_count -= 1
                 if cpu_acquired:
                     self._cpu_semaphore.release()
                 for semaphore in acquired_semaphores:
                     semaphore.release()
-            else:
-                self._release_slots_when_done(
-                    future,
-                    loop,
-                    (self._cpu_semaphore, *acquired_semaphores),
-                )
+                self._record_cpu_slots()
+            elif release_in_finally:
+                self._cpu_semaphore.release()
+                for semaphore in acquired_semaphores:
+                    semaphore.release()
+                self._record_cpu_slots()
 
     async def _summarize(
         self,
@@ -200,19 +261,15 @@ class PortfolioRuntime:
             if future.done() and not thread.is_alive():
                 thread.join()
 
-    def _release_slots_when_done(
-        self, future, loop: asyncio.AbstractEventLoop, semaphores
-    ) -> None:
-        if future.done():
-            for semaphore in semaphores:
-                semaphore.release()
-            return
+    def _record_cpu_slots(self) -> None:
+        portfolio_metrics.cpu_slots_waiting.set(max(self._cpu_waiting_count, 0))
+        used = self.config.cpu_workers - self._cpu_semaphore._value
+        portfolio_metrics.cpu_slots_used.set(max(used, 0))
 
-        def release_slot(_future) -> None:
-            for semaphore in semaphores:
-                try:
-                    loop.call_soon_threadsafe(semaphore.release)
-                except RuntimeError:
-                    pass
 
-        future.add_done_callback(release_slot)
+def _run_with_otel_context(parent_context, call):
+    token = otel_context.attach(parent_context)
+    try:
+        return call()
+    finally:
+        otel_context.detach(token)

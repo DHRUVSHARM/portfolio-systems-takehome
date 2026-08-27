@@ -1,0 +1,122 @@
+groups:
+  - name: portfolio-serving
+    rules:
+      - alert: GatewayDown
+        expr: up{job="gateway"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Gateway is down
+
+      - alert: PortfolioDown
+        expr: up{job="portfolio-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Portfolio API is down
+
+      - alert: VLLMUnavailable
+        expr: up{job="vllm"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: vLLM endpoint is unavailable
+
+      - alert: HighP95Latency
+        expr: histogram_quantile(0.95, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le)) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Gateway p95 latency is high
+
+      - alert: HighErrorRate
+        expr: sum(rate(gateway_requests_total{status_class=~"4xx|5xx"}[5m])) / clamp_min(sum(rate(gateway_requests_total[5m])), 1) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Gateway error rate is high
+
+      - alert: GatewayQueueGrowing
+        expr: gateway_queued_requests > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Gateway queue has sustained backlog
+
+      - alert: GatewayHighRejectionRate
+        expr: sum(rate(gateway_admission_rejections_total[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Gateway admission rejections are elevated
+
+      - alert: WorkflowWorkersSaturated
+        expr: portfolio_workflow_cpu_slots_waiting > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Portfolio workflow CPU workers are saturated
+
+      - alert: InferenceQueueGrowing
+        expr: sum({__name__=~"vllm:.*waiting.*|vllm_.*waiting.*"}) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Inference queue is growing
+
+      - alert: HighKVCacheUsage
+        expr: max({__name__=~"vllm:.*kv.*usage.*|vllm_.*kv.*usage.*"}) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: vLLM KV cache usage is high
+
+      - alert: InferencePreemptions
+        expr: sum(rate({__name__=~"vllm:.*preemption.*|vllm_.*preemption.*"}[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: vLLM preemptions observed
+
+      - alert: HostMemoryPressure
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host memory pressure is high
+
+      - alert: HighCPUUtilization
+        expr: 1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host CPU utilization is high
+
+      - alert: GPUHighMemoryUsage
+        expr: DCGM_FI_DEV_FB_USED / clamp_min(DCGM_FI_DEV_FB_TOTAL, 1) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: GPU memory usage is high
+
+      - alert: GPUHighTemperature
+        expr: DCGM_FI_DEV_GPU_TEMP > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: GPU temperature is high

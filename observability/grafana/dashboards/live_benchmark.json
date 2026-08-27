@@ -1,0 +1,12 @@
+{
+  "title": "Live Benchmark",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {"type": "timeseries", "title": "Current Traffic", "targets": [{"expr": "sum(rate(gateway_requests_total[1m]))"}]},
+    {"type": "timeseries", "title": "p95 / Errors", "targets": [{"expr": "histogram_quantile(0.95, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))"}, {"expr": "sum(rate(gateway_requests_total{status_class=~\"4xx|5xx\"}[5m]))"}]},
+    {"type": "timeseries", "title": "Gateway / vLLM Queue", "targets": [{"expr": "gateway_queued_requests"}, {"expr": "sum({__name__=~\"vllm:.*waiting.*|vllm_.*waiting.*\"})"}]},
+    {"type": "timeseries", "title": "Token Throughput", "targets": [{"expr": "sum(rate({__name__=~\"vllm:.*token.*total|vllm_.*token.*total\"}[1m]))"}]},
+    {"type": "timeseries", "title": "GPU / KV Pressure", "targets": [{"expr": "avg(DCGM_FI_DEV_GPU_UTIL)"}, {"expr": "max({__name__=~\"vllm:.*kv.*usage.*|vllm_.*kv.*usage.*\"})"}]}
+  ]
+}

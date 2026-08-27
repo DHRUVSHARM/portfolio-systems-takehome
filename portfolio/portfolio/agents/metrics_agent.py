@@ -8,6 +8,7 @@
 
 import math
 
+from ..observability import portfolio_metrics, start_as_current_span
 from .price_agent import PriceAgent
 
 TRADING_DAYS = 252
@@ -20,7 +21,31 @@ class MetricsAgent(object):
 
     def compute(self, ticker: str, lookback_days: int = 365) -> dict:
         """Compute return/volatility/Sharpe/drawdown metrics for one ticker."""
-        history = self.price.get_history(ticker=ticker, lookback_days=lookback_days)
+        with start_as_current_span(
+            f"MetricsAgent[{ticker}]",
+            {
+                "agent": "MetricsAgent",
+                "stage": "metrics",
+                "ticker": ticker,
+                "lookback_days": lookback_days,
+            },
+        ), portfolio_metrics.agent_timer(agent="MetricsAgent"):
+            with start_as_current_span(
+                f"PriceAgent.get_history[{ticker}]",
+                {
+                    "agent": "PriceAgent",
+                    "tool": "get_history",
+                    "ticker": ticker,
+                    "lookback_days": lookback_days,
+                },
+            ), portfolio_metrics.tool_timer(
+                agent="PriceAgent", tool="get_history"
+            ), portfolio_metrics.agent_timer(
+                agent="PriceAgent"
+            ):
+                history = self.price.get_history(
+                    ticker=ticker, lookback_days=lookback_days
+                )
         closes = history.get("closes", [])
 
         if len(closes) < 2:
