@@ -12,27 +12,29 @@
 
 
 class PriceAgent(object):
-    def __init__(self):
+    def __init__(self, use_yfinance: bool = True):
         self.tools = [self.get_history]
+        self.use_yfinance = use_yfinance
 
     def get_history(self, ticker: str, lookback_days: int = 365) -> dict:
         """Fetch daily closing prices for a ticker over the lookback window."""
-        try:
-            import yfinance as yf
+        if self.use_yfinance:
+            try:
+                import yfinance as yf
 
-            hist = yf.Ticker(ticker).history(period=f"{lookback_days}d")
-            closes = [float(c) for c in hist["Close"].tolist()]
-            dates = [str(d.date()) for d in hist.index]
-            if closes:
-                return {
-                    "ticker": ticker,
-                    "dates": dates,
-                    "closes": closes,
-                    "source": "yfinance",
-                }
-        except Exception as e:
-            print(f"PriceAgent: yfinance fetch failed for {ticker} ({e}); "
-                  "using synthetic prices.")
+                hist = yf.Ticker(ticker).history(period=f"{lookback_days}d")
+                closes = [float(c) for c in hist["Close"].tolist()]
+                dates = [str(d.date()) for d in hist.index]
+                if closes:
+                    return {
+                        "ticker": ticker,
+                        "dates": dates,
+                        "closes": closes,
+                        "source": "yfinance",
+                    }
+            except Exception as e:
+                print(f"PriceAgent: yfinance fetch failed for {ticker} ({e}); "
+                      "using synthetic prices.")
 
         return self._synthetic(ticker, lookback_days)
 

@@ -6,24 +6,21 @@
 #
 # Resource profile: cheap CPU, high fan-out — one compute() call per holding.
 
-import json
 import math
 
-from price_agent import PriceAgent
+from .price_agent import PriceAgent
 
 TRADING_DAYS = 252
 
 
 class MetricsAgent(object):
-    def __init__(self):
+    def __init__(self, price_agent: PriceAgent | None = None):
         self.tools = [self.compute]
-        self.price = PriceAgent()
+        self.price = price_agent or PriceAgent()
 
     def compute(self, ticker: str, lookback_days: int = 365) -> dict:
         """Compute return/volatility/Sharpe/drawdown metrics for one ticker."""
-        history = json.loads(
-            self.price.get_history(ticker=ticker, lookback_days=lookback_days))
-        )
+        history = self.price.get_history(ticker=ticker, lookback_days=lookback_days)
         closes = history.get("closes", [])
 
         if len(closes) < 2:
