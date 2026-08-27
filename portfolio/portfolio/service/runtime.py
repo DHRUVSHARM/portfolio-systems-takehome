@@ -73,7 +73,12 @@ class PortfolioRuntime:
             self.risk_agent.assess, holdings=holdings, metrics=per_ticker
         )
 
-        summary = await self._summarize(holdings=holdings, metrics=per_ticker, risk=risk)
+        summary = await self._summarize(
+            holdings=holdings,
+            metrics=per_ticker,
+            risk=risk,
+            context=context,
+        )
 
         metrics_view = {
             ticker: {
@@ -91,6 +96,9 @@ class PortfolioRuntime:
         }
 
     async def close(self) -> None:
+        advisor_close = getattr(self.advisor, "aclose", None)
+        if advisor_close is not None:
+            await advisor_close()
         self.shutdown()
 
     def shutdown(self) -> None:
@@ -145,10 +153,22 @@ class PortfolioRuntime:
                     (self._cpu_semaphore, *acquired_semaphores),
                 )
 
-    async def _summarize(self, *, holdings: dict, metrics: dict, risk: dict) -> str:
+    async def _summarize(
+        self,
+        *,
+        holdings: dict,
+        metrics: dict,
+        risk: dict,
+        context: RequestContext,
+    ) -> str:
         summarize_async = getattr(self.advisor, "summarize_async", None)
         if summarize_async is not None:
-            return await summarize_async(holdings=holdings, metrics=metrics, risk=risk)
+            return await summarize_async(
+                holdings=holdings,
+                metrics=metrics,
+                risk=risk,
+                context=context,
+            )
         return await self._run_sync_advisor(
             holdings=holdings, metrics=metrics, risk=risk
         )
