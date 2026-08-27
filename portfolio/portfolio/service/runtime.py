@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+from concurrent.futures import Future, InvalidStateError
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+import threading
 from typing import Any
 
 from ..agents.advisor_agent import AdvisorAgent
@@ -30,6 +32,7 @@ class PortfolioRuntime:
         self.risk_agent = risk_agent or RiskAgent()
         self.advisor = advisor or AdvisorAgent()
         self._executor = ThreadPoolExecutor(max_workers=config.cpu_workers)
+        self._cpu_semaphore = asyncio.Semaphore(config.cpu_workers)
         self._metric_semaphore = asyncio.Semaphore(config.max_concurrent_metric_tasks)
         self._closed = False
 
@@ -113,42 +116,83 @@ class PortfolioRuntime:
     ) -> dict:
         del context
         await self._metric_semaphore.acquire()
-        loop = asyncio.get_running_loop()
-        future = self._executor.submit(
-            partial(
-                self.metrics_agent.compute,
-                ticker=ticker,
-                lookback_days=lookback_days,
-            )
+        return await self._run_cpu(
+            self.metrics_agent.compute,
+            acquired_semaphores=(self._metric_semaphore,),
+            ticker=ticker,
+            lookback_days=lookback_days,
         )
-        try:
-            return await self._await_executor_future(future)
-        finally:
-            self._release_metric_slot_when_done(future, loop)
 
-    async def _run_cpu(self, func, /, **kwargs):
-        future = self._executor.submit(partial(func, **kwargs))
-        return await self._await_executor_future(future)
+    async def _run_cpu(self, func, /, acquired_semaphores=(), **kwargs):
+        future = None
+        loop = asyncio.get_running_loop()
+        cpu_acquired = False
+        try:
+            await self._cpu_semaphore.acquire()
+            cpu_acquired = True
+            future = self._executor.submit(partial(func, **kwargs))
+            return await asyncio.wrap_future(future)
+        finally:
+            if future is None:
+                if cpu_acquired:
+                    self._cpu_semaphore.release()
+                for semaphore in acquired_semaphores:
+                    semaphore.release()
+            else:
+                self._release_slots_when_done(
+                    future,
+                    loop,
+                    (self._cpu_semaphore, *acquired_semaphores),
+                )
 
     async def _summarize(self, *, holdings: dict, metrics: dict, risk: dict) -> str:
         summarize_async = getattr(self.advisor, "summarize_async", None)
         if summarize_async is not None:
             return await summarize_async(holdings=holdings, metrics=metrics, risk=risk)
-        return self.advisor.summarize(holdings=holdings, metrics=metrics, risk=risk)
+        return await self._run_sync_advisor(
+            holdings=holdings, metrics=metrics, risk=risk
+        )
 
-    def _release_metric_slot_when_done(
-        self, future, loop: asyncio.AbstractEventLoop
+    async def _run_sync_advisor(self, *, holdings: dict, metrics: dict, risk: dict) -> str:
+        future: Future = Future()
+
+        def run() -> None:
+            try:
+                result = self.advisor.summarize(
+                    holdings=holdings, metrics=metrics, risk=risk
+                )
+            except BaseException as exc:
+                try:
+                    future.set_exception(exc)
+                except InvalidStateError:
+                    pass
+            else:
+                try:
+                    future.set_result(result)
+                except InvalidStateError:
+                    pass
+
+        thread = threading.Thread(target=run, name="portfolio-advisor-compat")
+        thread.start()
+        try:
+            return await asyncio.wrap_future(future)
+        finally:
+            if future.done() and not thread.is_alive():
+                thread.join()
+
+    def _release_slots_when_done(
+        self, future, loop: asyncio.AbstractEventLoop, semaphores
     ) -> None:
         if future.done():
-            self._metric_semaphore.release()
+            for semaphore in semaphores:
+                semaphore.release()
             return
 
         def release_slot(_future) -> None:
-            loop.call_soon_threadsafe(self._metric_semaphore.release)
+            for semaphore in semaphores:
+                try:
+                    loop.call_soon_threadsafe(semaphore.release)
+                except RuntimeError:
+                    pass
 
         future.add_done_callback(release_slot)
-
-    async def _await_executor_future(self, future):
-        while not future.done():
-            await asyncio.sleep(0.001)
-        return future.result()

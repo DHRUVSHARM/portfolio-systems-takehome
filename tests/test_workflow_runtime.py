@@ -79,6 +79,26 @@ class CountingMetricsAgent:
                 self.active -= 1
 
 
+class TrackingThreadPoolExecutor(RealThreadPoolExecutor):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.outstanding = 0
+        self.peak_outstanding = 0
+        self.lock = threading.Lock()
+
+    def submit(self, *args, **kwargs):
+        with self.lock:
+            self.outstanding += 1
+            self.peak_outstanding = max(self.peak_outstanding, self.outstanding)
+        future = super().submit(*args, **kwargs)
+        future.add_done_callback(self._release_outstanding)
+        return future
+
+    def _release_outstanding(self, _future):
+        with self.lock:
+            self.outstanding -= 1
+
+
 class FailingMetricsAgent:
     def __init__(self, fail_ticker):
         self.tools = [self.compute]
@@ -112,17 +132,22 @@ class BlockingMetricsAgent:
 
 
 class RecordingRiskAgent:
-    def __init__(self, events=None, fail=False):
+    def __init__(self, events=None, fail=False, delay=0.0):
         self.tools = [self.assess]
         self.events = events or EventLog()
         self.fail = fail
+        self.delay = delay
         self.called = False
+        self.calls = 0
         self.received_metrics = None
 
     def assess(self, holdings, metrics):
         self.called = True
+        self.calls += 1
         self.received_metrics = metrics
         self.events.append("risk-start", tuple(metrics))
+        if self.delay:
+            time.sleep(self.delay)
         if self.fail:
             raise RuntimeError("risk failure")
         return {
@@ -151,11 +176,34 @@ class RecordingAdvisorAgent:
         return "async summary"
 
 
+class BlockingSyncAdvisorAgent:
+    def __init__(self, delay=0.15):
+        self.delay = delay
+        self.start_time = None
+        self.end_time = None
+
+    def summarize(self, holdings, metrics, risk):
+        del holdings, metrics, risk
+        self.start_time = time.monotonic()
+        time.sleep(self.delay)
+        self.end_time = time.monotonic()
+        return "sync summary"
+
+
 class WorkflowRuntimeTests(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        self._heartbeat_task = asyncio.create_task(self._heartbeat())
+
     async def asyncTearDown(self):
         runtime = getattr(self, "runtime", None)
         if runtime is not None:
             await runtime.close()
+        self._heartbeat_task.cancel()
+        await asyncio.gather(self._heartbeat_task, return_exceptions=True)
+
+    async def _heartbeat(self):
+        while True:
+            await asyncio.sleep(0.001)
 
     async def test_fanout_barrier_and_advisor_order(self):
         events = EventLog()
@@ -237,6 +285,40 @@ class WorkflowRuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(created_executors), 1)
         self.assertEqual(metrics_agent.calls, 4)
 
+    async def test_total_cpu_admission_bound_includes_metrics_and_risk(self):
+        created_executors = []
+
+        def executor_factory(*args, **kwargs):
+            executor = TrackingThreadPoolExecutor(*args, **kwargs)
+            created_executors.append(executor)
+            return executor
+
+        with patch(
+            "portfolio.portfolio.service.runtime.ThreadPoolExecutor",
+            side_effect=executor_factory,
+        ):
+            metrics_agent = CountingMetricsAgent(delay=0.02)
+            risk_agent = RecordingRiskAgent(delay=0.04)
+            self.runtime = PortfolioRuntime(
+                config=WorkflowRuntimeConfig(cpu_workers=3, max_concurrent_metric_tasks=12),
+                metrics_agent=metrics_agent,
+                risk_agent=risk_agent,
+                advisor=RecordingAdvisorAgent(),
+            )
+            holdings = {f"T{i}": 0.25 for i in range(4)}
+
+            await asyncio.gather(
+                *[
+                    self.runtime.analyze(holdings=holdings, lookback_days=30)
+                    for _ in range(8)
+                ]
+            )
+
+        self.assertEqual(len(created_executors), 1)
+        self.assertEqual(metrics_agent.calls, 32)
+        self.assertEqual(risk_agent.calls, 8)
+        self.assertLessEqual(created_executors[0].peak_outstanding, 3)
+
     async def test_metrics_failure_prevents_risk_and_advisor(self):
         risk_agent = RecordingRiskAgent()
         advisor = RecordingAdvisorAgent()
@@ -305,6 +387,46 @@ class WorkflowRuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(risk_agent.called)
         self.assertFalse(advisor.called)
         release.set()
+
+        result = await self.runtime.analyze(
+            holdings={"GOOGL": 1.0},
+            lookback_days=180,
+        )
+        self.assertEqual(result["summary"], "async summary")
+
+    async def test_z_sync_advisor_compatibility_does_not_block_event_loop(self):
+        advisor = BlockingSyncAdvisorAgent(delay=0.15)
+        self.runtime = PortfolioRuntime(
+            config=WorkflowRuntimeConfig(cpu_workers=2, max_concurrent_metric_tasks=2),
+            metrics_agent=CountingMetricsAgent(delay=0.01),
+            risk_agent=RecordingRiskAgent(),
+            advisor=advisor,
+        )
+        tick_times = []
+        stop = asyncio.Event()
+
+        async def ticker():
+            while not stop.is_set():
+                tick_times.append(time.monotonic())
+                await asyncio.sleep(0.01)
+
+        ticker_task = asyncio.create_task(ticker())
+        try:
+            result = await self.runtime.analyze(
+                holdings={"AAPL": 0.5, "MSFT": 0.5},
+                lookback_days=90,
+            )
+        finally:
+            stop.set()
+            await asyncio.gather(ticker_task, return_exceptions=True)
+
+        self.assertEqual(result["summary"], "sync summary")
+        ticks_during_advisor = [
+            tick
+            for tick in tick_times
+            if advisor.start_time <= tick <= advisor.end_time
+        ]
+        self.assertGreaterEqual(len(ticks_during_advisor), 5)
 
     async def test_response_compatibility_and_internal_returns_for_risk(self):
         risk_agent = RecordingRiskAgent()

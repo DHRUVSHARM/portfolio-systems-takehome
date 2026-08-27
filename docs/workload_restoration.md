@@ -102,10 +102,15 @@ holdings -> MetricsAgent fan-out -> metrics barrier -> RiskAgent -> AdvisorAgent
 ```
 
 Metric calls run through the shared executor and are limited globally by
-`max_concurrent_metric_tasks` across all active requests. Risk runs only after
-every required metric call completes successfully. Advisor runs only after Risk
-completes successfully, and the boundary already prefers an async
-`summarize_async()` method for the upcoming vLLM/OpenAI-compatible integration.
+`max_concurrent_metric_tasks` across all active requests. All work submitted to
+the shared workflow executor, including MetricsAgent and RiskAgent work, is also
+bounded by `cpu_workers` so concurrent requests cannot fill an unbounded executor
+queue. Risk runs only after every required metric call completes successfully.
+Advisor runs only after Risk completes successfully, and the boundary already
+prefers an async `summarize_async()` method for the upcoming
+vLLM/OpenAI-compatible integration. The temporary synchronous Advisor
+compatibility path runs outside the shared workflow CPU executor so it does not
+block the asyncio event loop.
 
 The runtime adds only lifecycle and serving-safety plumbing. It does not change
 the portfolio calculations, query adapter, price fallback behavior, prompt
