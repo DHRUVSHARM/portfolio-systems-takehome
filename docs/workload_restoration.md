@@ -86,3 +86,27 @@ barrier ordering, structured workflow smoke execution, and representative real
 Deferred work includes vLLM/open-weight model integration, inference telemetry,
 token/cost accounting, GPU monitoring, official 100-query benchmarking, full
 1,000-query load testing, and performance/cost analysis.
+
+## Serving Runtime
+
+The synchronous `portfolio_workflow.main()` entry point remains available for
+offline compatibility tests and direct local smoke runs. Serving code should use
+one process-lifetime `PortfolioRuntime` instead. The runtime owns a shared
+bounded `ThreadPoolExecutor`, so concurrent portfolio requests do not each
+create their own metric worker pool.
+
+`PortfolioRuntime.analyze()` preserves the workload ordering:
+
+```text
+holdings -> MetricsAgent fan-out -> metrics barrier -> RiskAgent -> AdvisorAgent
+```
+
+Metric calls run through the shared executor and are limited globally by
+`max_concurrent_metric_tasks` across all active requests. Risk runs only after
+every required metric call completes successfully. Advisor runs only after Risk
+completes successfully, and the boundary already prefers an async
+`summarize_async()` method for the upcoming vLLM/OpenAI-compatible integration.
+
+The runtime adds only lifecycle and serving-safety plumbing. It does not change
+the portfolio calculations, query adapter, price fallback behavior, prompt
+construction, or response contract.

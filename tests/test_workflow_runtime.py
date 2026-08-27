@@ -1,0 +1,344 @@
+import asyncio
+from concurrent.futures import ThreadPoolExecutor as RealThreadPoolExecutor
+import threading
+import time
+import unittest
+from unittest.mock import patch
+
+from portfolio.portfolio.service import (
+    PortfolioRuntime,
+    RequestContext,
+    WorkflowRuntimeConfig,
+)
+
+
+def _metric_result(ticker):
+    return {
+        "ticker": ticker,
+        "source": "test",
+        "last_price": 100.0,
+        "n_days": 3,
+        "total_return": 0.02,
+        "annualized_return": 0.10,
+        "annualized_volatility": 0.20,
+        "sharpe": 0.5,
+        "max_drawdown": -0.01,
+        "returns": [0.01, 0.02],
+    }
+
+
+class EventLog:
+    def __init__(self):
+        self._events = []
+        self._lock = threading.Lock()
+
+    def append(self, *event):
+        with self._lock:
+            self._events.append(event)
+
+    def snapshot(self):
+        with self._lock:
+            return list(self._events)
+
+
+class BarrierMetricsAgent:
+    def __init__(self, events, parties):
+        self.tools = [self.compute]
+        self.events = events
+        self.barrier = threading.Barrier(parties, timeout=2.0)
+
+    def compute(self, ticker, lookback_days=365):
+        self.events.append("metric-start", ticker)
+        self.barrier.wait()
+        time.sleep(0.02)
+        self.events.append("metric-end", ticker)
+        return _metric_result(ticker)
+
+
+class CountingMetricsAgent:
+    def __init__(self, delay=0.02):
+        self.tools = [self.compute]
+        self.delay = delay
+        self.active = 0
+        self.peak = 0
+        self.calls = 0
+        self.lock = threading.Lock()
+        self.thread_names = set()
+
+    def compute(self, ticker, lookback_days=365):
+        with self.lock:
+            self.active += 1
+            self.calls += 1
+            self.peak = max(self.peak, self.active)
+            self.thread_names.add(threading.current_thread().name)
+        try:
+            time.sleep(self.delay)
+            return _metric_result(ticker)
+        finally:
+            with self.lock:
+                self.active -= 1
+
+
+class FailingMetricsAgent:
+    def __init__(self, fail_ticker):
+        self.tools = [self.compute]
+        self.fail_ticker = fail_ticker
+
+    def compute(self, ticker, lookback_days=365):
+        if ticker == self.fail_ticker:
+            raise RuntimeError(f"metric failure for {ticker}")
+        time.sleep(0.02)
+        return _metric_result(ticker)
+
+
+class BlockingMetricsAgent:
+    def __init__(self, events, started, release):
+        self.tools = [self.compute]
+        self.events = events
+        self.started = started
+        self.release = release
+        self.started_count = 0
+        self.lock = threading.Lock()
+
+    def compute(self, ticker, lookback_days=365):
+        self.events.append("metric-start", ticker)
+        with self.lock:
+            self.started_count += 1
+            if self.started_count == 2:
+                self.started.set()
+        self.release.wait(timeout=2.0)
+        self.events.append("metric-end", ticker)
+        return _metric_result(ticker)
+
+
+class RecordingRiskAgent:
+    def __init__(self, events=None, fail=False):
+        self.tools = [self.assess]
+        self.events = events or EventLog()
+        self.fail = fail
+        self.called = False
+        self.received_metrics = None
+
+    def assess(self, holdings, metrics):
+        self.called = True
+        self.received_metrics = metrics
+        self.events.append("risk-start", tuple(metrics))
+        if self.fail:
+            raise RuntimeError("risk failure")
+        return {
+            "n_holdings": len(metrics),
+            "weights": holdings,
+            "portfolio_annualized_return": 0.10,
+            "portfolio_annualized_volatility": 0.20,
+            "portfolio_sharpe": 0.5,
+            "concentration_hhi": 0.34,
+            "diversification_ratio": 1.0,
+            "top_holding": {
+                "ticker": next(iter(holdings)),
+                "weight": next(iter(holdings.values())),
+            },
+        }
+
+
+class RecordingAdvisorAgent:
+    def __init__(self, events=None):
+        self.events = events or EventLog()
+        self.called = False
+
+    async def summarize_async(self, holdings, metrics, risk):
+        self.called = True
+        self.events.append("advisor-start", tuple(metrics))
+        return "async summary"
+
+
+class WorkflowRuntimeTests(unittest.IsolatedAsyncioTestCase):
+    async def asyncTearDown(self):
+        runtime = getattr(self, "runtime", None)
+        if runtime is not None:
+            await runtime.close()
+
+    async def test_fanout_barrier_and_advisor_order(self):
+        events = EventLog()
+        self.runtime = PortfolioRuntime(
+            config=WorkflowRuntimeConfig(cpu_workers=3, max_concurrent_metric_tasks=3),
+            metrics_agent=BarrierMetricsAgent(events, parties=3),
+            risk_agent=RecordingRiskAgent(events),
+            advisor=RecordingAdvisorAgent(events),
+        )
+
+        result = await self.runtime.analyze(
+            holdings={"AAPL": 0.4, "MSFT": 0.35, "NVDA": 0.25},
+            lookback_days=180,
+            context=RequestContext(run_id="test-run"),
+        )
+
+        snapshot = events.snapshot()
+        first_end = next(i for i, event in enumerate(snapshot) if event[0] == "metric-end")
+        risk_index = next(i for i, event in enumerate(snapshot) if event[0] == "risk-start")
+        advisor_index = next(
+            i for i, event in enumerate(snapshot) if event[0] == "advisor-start"
+        )
+        starts_before_first_end = [
+            event for event in snapshot[:first_end] if event[0] == "metric-start"
+        ]
+        metric_end_indexes = [
+            i for i, event in enumerate(snapshot) if event[0] == "metric-end"
+        ]
+
+        self.assertEqual(len(starts_before_first_end), 3)
+        self.assertTrue(all(index < risk_index for index in metric_end_indexes))
+        self.assertLess(risk_index, advisor_index)
+        self.assertEqual(result["summary"], "async summary")
+
+    async def test_global_metric_task_bound_across_concurrent_requests(self):
+        metrics_agent = CountingMetricsAgent(delay=0.03)
+        self.runtime = PortfolioRuntime(
+            config=WorkflowRuntimeConfig(cpu_workers=8, max_concurrent_metric_tasks=4),
+            metrics_agent=metrics_agent,
+            risk_agent=RecordingRiskAgent(),
+            advisor=RecordingAdvisorAgent(),
+        )
+        holdings = {f"T{i}": 1 / 6 for i in range(6)}
+
+        await asyncio.gather(
+            *[
+                self.runtime.analyze(holdings=holdings, lookback_days=30)
+                for _ in range(10)
+            ]
+        )
+
+        self.assertEqual(metrics_agent.calls, 60)
+        self.assertLessEqual(metrics_agent.peak, 4)
+
+    async def test_shared_runtime_reuses_one_executor_across_requests(self):
+        created_executors = []
+
+        def executor_factory(*args, **kwargs):
+            executor = RealThreadPoolExecutor(*args, **kwargs)
+            created_executors.append(executor)
+            return executor
+
+        with patch(
+            "portfolio.portfolio.service.runtime.ThreadPoolExecutor",
+            side_effect=executor_factory,
+        ):
+            metrics_agent = CountingMetricsAgent(delay=0.01)
+            self.runtime = PortfolioRuntime(
+                config=WorkflowRuntimeConfig(cpu_workers=2, max_concurrent_metric_tasks=2),
+                metrics_agent=metrics_agent,
+                risk_agent=RecordingRiskAgent(),
+                advisor=RecordingAdvisorAgent(),
+            )
+            holdings = {"AAPL": 0.5, "MSFT": 0.5}
+
+            await self.runtime.analyze(holdings=holdings, lookback_days=30)
+            await self.runtime.analyze(holdings=holdings, lookback_days=30)
+
+        self.assertEqual(len(created_executors), 1)
+        self.assertEqual(metrics_agent.calls, 4)
+
+    async def test_metrics_failure_prevents_risk_and_advisor(self):
+        risk_agent = RecordingRiskAgent()
+        advisor = RecordingAdvisorAgent()
+        self.runtime = PortfolioRuntime(
+            config=WorkflowRuntimeConfig(cpu_workers=3, max_concurrent_metric_tasks=3),
+            metrics_agent=FailingMetricsAgent(fail_ticker="MSFT"),
+            risk_agent=risk_agent,
+            advisor=advisor,
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "metric failure"):
+            await self.runtime.analyze(
+                holdings={"AAPL": 0.4, "MSFT": 0.35, "NVDA": 0.25},
+                lookback_days=180,
+            )
+
+        self.assertFalse(risk_agent.called)
+        self.assertFalse(advisor.called)
+
+    async def test_risk_failure_prevents_advisor(self):
+        advisor = RecordingAdvisorAgent()
+        self.runtime = PortfolioRuntime(
+            config=WorkflowRuntimeConfig(cpu_workers=2, max_concurrent_metric_tasks=2),
+            metrics_agent=CountingMetricsAgent(delay=0.01),
+            risk_agent=RecordingRiskAgent(fail=True),
+            advisor=advisor,
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "risk failure"):
+            await self.runtime.analyze(
+                holdings={"AAPL": 0.5, "MSFT": 0.5},
+                lookback_days=180,
+            )
+
+        self.assertFalse(advisor.called)
+
+    async def test_cancellation_prevents_risk_and_advisor(self):
+        events = EventLog()
+        started = threading.Event()
+        release = threading.Event()
+        risk_agent = RecordingRiskAgent(events)
+        advisor = RecordingAdvisorAgent(events)
+        self.runtime = PortfolioRuntime(
+            config=WorkflowRuntimeConfig(cpu_workers=2, max_concurrent_metric_tasks=2),
+            metrics_agent=BlockingMetricsAgent(events, started, release),
+            risk_agent=risk_agent,
+            advisor=advisor,
+        )
+
+        task = asyncio.create_task(
+            self.runtime.analyze(
+                holdings={"AAPL": 0.5, "MSFT": 0.5},
+                lookback_days=180,
+            )
+        )
+        for _ in range(200):
+            if started.is_set():
+                break
+            await asyncio.sleep(0.01)
+        self.assertTrue(started.is_set())
+        task.cancel()
+
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+
+        self.assertFalse(risk_agent.called)
+        self.assertFalse(advisor.called)
+        release.set()
+
+    async def test_response_compatibility_and_internal_returns_for_risk(self):
+        risk_agent = RecordingRiskAgent()
+        self.runtime = PortfolioRuntime(
+            config=WorkflowRuntimeConfig(cpu_workers=2, max_concurrent_metric_tasks=2),
+            metrics_agent=CountingMetricsAgent(delay=0.01),
+            risk_agent=risk_agent,
+            advisor=RecordingAdvisorAgent(),
+        )
+
+        result = await self.runtime.analyze(
+            holdings={"AAPL": 0.5, "MSFT": 0.5},
+            lookback_days=90,
+        )
+
+        self.assertEqual(
+            sorted(result),
+            ["holdings", "lookback_days", "metrics", "risk", "summary"],
+        )
+        self.assertEqual(result["lookback_days"], 90)
+        self.assertTrue(
+            all("returns" not in metric for metric in result["metrics"].values())
+        )
+        self.assertIsNotNone(risk_agent.received_metrics)
+        self.assertTrue(
+            all("returns" in metric for metric in risk_agent.received_metrics.values())
+        )
+
+    async def test_config_requires_positive_integers(self):
+        with self.assertRaises(ValueError):
+            WorkflowRuntimeConfig(cpu_workers=0, max_concurrent_metric_tasks=1)
+        with self.assertRaises(ValueError):
+            WorkflowRuntimeConfig(cpu_workers=1, max_concurrent_metric_tasks=0)
+
+
+if __name__ == "__main__":
+    unittest.main()
