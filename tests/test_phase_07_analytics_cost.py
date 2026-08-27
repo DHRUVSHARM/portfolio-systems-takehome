@@ -111,6 +111,8 @@ class Phase7AnalyticsCostTests(unittest.TestCase):
         self.assertEqual({row["request_id"] for row in request_rows}, {"req-ok", "req-fail"})
         self.assertEqual(inference_rows[0]["prompt_tokens"], 100)
         self.assertIn("raw JSONB", schema)
+        self.assertIn("profile_id TEXT NOT NULL REFERENCES cost_profiles", schema)
+        self.assertIn("UNIQUE(run_id, profile_id, request_id)", schema)
 
     def test_total_run_cost_formula_correct(self):
         dataset = _dataset()
@@ -139,6 +141,12 @@ class Phase7AnalyticsCostTests(unittest.TestCase):
             100.0,
             places=9,
         )
+        overhead = next(row for row in analysis.agent_costs if row.agent == "overhead_unallocated")
+        advisor = next(row for row in analysis.agent_costs if row.agent == "AdvisorAgent")
+        metrics = next(row for row in analysis.agent_costs if row.agent == "MetricsAgent")
+        self.assertAlmostEqual(overhead.cost_percentage, 20.0)
+        self.assertAlmostEqual(advisor.cost_percentage, 50.0)
+        self.assertEqual(metrics.raw["boundary"], "non-overlapping configured pools")
 
     def test_concurrent_gpu_attribution_does_not_double_count_overlapping_wall_time(self):
         dataset = _dataset_with_two_overlapping_successful_inferences()
@@ -231,8 +239,67 @@ class Phase7AnalyticsCostTests(unittest.TestCase):
                 "cost_latency_by_holdings.json",
                 "cost_vs_tokens.json",
                 "agent_cost_share.json",
+                "query_type_breakdown.json",
+                "holdings_count_breakdown.json",
             }.issubset(chart_files)
         )
+        percent_group = next(
+            row for row in report["query_type_breakdown"] if row["group"] == "percent"
+        )
+        equal_group = next(
+            row for row in report["query_type_breakdown"] if row["group"] == "equal"
+        )
+        self.assertEqual(percent_group["count"], 1)
+        self.assertEqual(percent_group["success_rate"], 1.0)
+        self.assertEqual(percent_group["average_prompt_tokens"], 100.0)
+        self.assertEqual(percent_group["average_completion_tokens"], 25.0)
+        self.assertEqual(equal_group["success_rate"], 0.0)
+
+    def test_different_cost_profiles_persist_without_ambiguity(self):
+        dataset = _dataset()
+        first = calculate_costs(dataset, _profile())
+        second = calculate_costs(
+            dataset,
+            CostProfile(
+                name="fixture",
+                version="alt",
+                machine_hourly_usd=720.0,
+                cpu_pool_fraction=0.40,
+                gpu_pool_fraction=0.40,
+                overhead_pool_fraction=0.20,
+            ),
+        )
+        connection = RecordingConnection()
+        repository = PostgresAnalyticsRepository(connection)
+
+        repository.persist_cost_analysis(first)
+        repository.persist_cost_analysis(second)
+
+        sql_text = "\n".join(statement for statement, _params in connection.statements)
+        request_profiles = [
+            params[1]
+            for statement, params in connection.statements
+            if "INSERT INTO request_cost_attributions" in statement
+        ]
+        agent_profiles = [
+            params[1]
+            for statement, params in connection.statements
+            if "INSERT INTO agent_cost_attributions" in statement
+        ]
+        metric_profiles = [
+            params[1]
+            for statement, params in connection.statements
+            if "INSERT INTO derived_metrics" in statement
+        ]
+
+        self.assertIn("ON CONFLICT (run_id, profile_id)", sql_text)
+        self.assertIn("ON CONFLICT (run_id, profile_id, request_id)", sql_text)
+        self.assertIn("fixture:1", request_profiles)
+        self.assertIn("fixture:alt", request_profiles)
+        self.assertIn("fixture:1", agent_profiles)
+        self.assertIn("fixture:alt", agent_profiles)
+        self.assertIn("fixture:1", metric_profiles)
+        self.assertIn("fixture:alt", metric_profiles)
 
     def test_metric_registry_and_reference_profile_are_versioned(self):
         registry = default_metric_registry()

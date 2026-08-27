@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ..calculators.agents import agent_tool_latency_summary, fanout_work_summary
-from ..models import AnalyticsDataset, CostAnalysis
+from ..models import AnalyticsDataset, CostAnalysis, distribution
 from ..registry import registry_as_rows
 
 
@@ -190,6 +190,28 @@ def _write_chart_data(
             ],
         },
     )
+    _write_json(
+        charts_dir / "query_type_breakdown.json",
+        {
+            "run_id": analysis.run_id,
+            "groups": _query_breakdown(
+                dataset=dataset,
+                analysis=analysis,
+                key_fn=lambda request: request.phrasing,
+            ),
+        },
+    )
+    _write_json(
+        charts_dir / "holdings_count_breakdown.json",
+        {
+            "run_id": analysis.run_id,
+            "groups": _query_breakdown(
+                dataset=dataset,
+                analysis=analysis,
+                key_fn=lambda request: str(request.n_holdings),
+            ),
+        },
+    )
     inference_by_request = {row.request_id: row for row in dataset.inference_observations}
     _write_json(
         charts_dir / "cost_vs_tokens.json",
@@ -253,3 +275,58 @@ def _histogram(values: list[float], bins: int = 10) -> list[dict[str, float | in
         }
         for index, count in enumerate(counts)
     ]
+
+
+def _query_breakdown(dataset: AnalyticsDataset, analysis: CostAnalysis, key_fn):
+    cost_by_request = {row.request_id: row for row in analysis.request_costs}
+    inference_by_request = {row.request_id: row for row in dataset.inference_observations}
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for request in dataset.requests:
+        group = key_fn(request) or "unknown"
+        cost = cost_by_request.get(request.request_id)
+        inference = inference_by_request.get(request.request_id)
+        grouped.setdefault(group, []).append(
+            {
+                "success": request.success,
+                "latency_ms": request.client_latency_ms,
+                "cost_usd": cost.total_cost_usd if cost else None,
+                "prompt_tokens": inference.prompt_tokens if inference else None,
+                "completion_tokens": inference.completion_tokens if inference else None,
+            }
+        )
+
+    rows = []
+    for group, items in sorted(grouped.items()):
+        costs = [item["cost_usd"] for item in items if item["cost_usd"] is not None]
+        latencies = [item["latency_ms"] for item in items]
+        prompt_tokens = [
+            item["prompt_tokens"] for item in items if item["prompt_tokens"] is not None
+        ]
+        completion_tokens = [
+            item["completion_tokens"]
+            for item in items
+            if item["completion_tokens"] is not None
+        ]
+        cost_dist = distribution(costs)
+        latency_dist = distribution(latencies)
+        rows.append(
+            {
+                "group": group,
+                "count": len(items),
+                "success_rate": sum(1 for item in items if item["success"]) / len(items),
+                "mean_cost_per_query_usd": cost_dist["mean"],
+                "median_cost_per_query_usd": cost_dist["median"],
+                "p95_cost_per_query_usd": cost_dist["p95"],
+                "mean_latency_ms": latency_dist["mean"],
+                "p95_latency_ms": latency_dist["p95"],
+                "average_prompt_tokens": _average(prompt_tokens),
+                "average_completion_tokens": _average(completion_tokens),
+            }
+        )
+    return rows
+
+
+def _average(values: list[int]) -> float | None:
+    if not values:
+        return None
+    return sum(values) / len(values)

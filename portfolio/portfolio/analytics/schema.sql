@@ -7,6 +7,10 @@ INSERT INTO analytics_schema_versions (version)
 VALUES (1)
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO analytics_schema_versions (version)
+VALUES (2)
+ON CONFLICT (version) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS experiment_runs (
   run_id TEXT PRIMARY KEY,
   started_at TIMESTAMPTZ NOT NULL,
@@ -178,12 +182,14 @@ CREATE TABLE IF NOT EXISTS cost_analyses (
   generated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   total_run_cost_usd DOUBLE PRECISION NOT NULL,
   request_cost_sum_usd DOUBLE PRECISION NOT NULL,
-  raw JSONB NOT NULL DEFAULT '{}'::jsonb
+  raw JSONB NOT NULL DEFAULT '{}'::jsonb,
+  UNIQUE(run_id, profile_id)
 );
 
 CREATE TABLE IF NOT EXISTS request_cost_attributions (
   attribution_id BIGSERIAL PRIMARY KEY,
   run_id TEXT NOT NULL REFERENCES experiment_runs(run_id) ON DELETE CASCADE,
+  profile_id TEXT NOT NULL REFERENCES cost_profiles(profile_id),
   request_id TEXT NOT NULL REFERENCES requests(request_id) ON DELETE CASCADE,
   query_id TEXT NOT NULL,
   success BOOLEAN NOT NULL,
@@ -194,15 +200,17 @@ CREATE TABLE IF NOT EXISTS request_cost_attributions (
   cpu_seconds DOUBLE PRECISION NOT NULL,
   token_work DOUBLE PRECISION NOT NULL,
   wall_seconds DOUBLE PRECISION NOT NULL,
-  raw JSONB NOT NULL DEFAULT '{}'::jsonb
+  raw JSONB NOT NULL DEFAULT '{}'::jsonb,
+  UNIQUE(run_id, profile_id, request_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_request_cost_run
-  ON request_cost_attributions(run_id, query_id);
+  ON request_cost_attributions(run_id, profile_id, query_id);
 
 CREATE TABLE IF NOT EXISTS agent_cost_attributions (
   attribution_id BIGSERIAL PRIMARY KEY,
   run_id TEXT NOT NULL REFERENCES experiment_runs(run_id) ON DELETE CASCADE,
+  profile_id TEXT NOT NULL REFERENCES cost_profiles(profile_id),
   agent TEXT NOT NULL,
   calls INTEGER NOT NULL,
   wall_time_ms DOUBLE PRECISION NOT NULL,
@@ -213,24 +221,28 @@ CREATE TABLE IF NOT EXISTS agent_cost_attributions (
   failures INTEGER NOT NULL,
   attributed_cost_usd DOUBLE PRECISION NOT NULL,
   cost_percentage DOUBLE PRECISION NOT NULL,
-  raw JSONB NOT NULL DEFAULT '{}'::jsonb
+  raw JSONB NOT NULL DEFAULT '{}'::jsonb,
+  UNIQUE(run_id, profile_id, agent)
 );
 
 CREATE TABLE IF NOT EXISTS derived_metrics (
   metric_id BIGSERIAL PRIMARY KEY,
   run_id TEXT NOT NULL REFERENCES experiment_runs(run_id) ON DELETE CASCADE,
+  profile_id TEXT,
   metric_name TEXT NOT NULL,
   metric_version TEXT NOT NULL,
   calculated_at TIMESTAMPTZ NOT NULL,
   cost_profile_name TEXT,
   cost_profile_version TEXT,
   value JSONB NOT NULL,
-  raw JSONB NOT NULL DEFAULT '{}'::jsonb
+  raw JSONB NOT NULL DEFAULT '{}'::jsonb,
+  UNIQUE(run_id, profile_id, metric_name, metric_version)
 );
 
 CREATE OR REPLACE VIEW agent_cost_breakdown AS
 SELECT
   run_id,
+  profile_id,
   agent,
   calls,
   cpu_time_ms / 1000.0 AS cpu_seconds,
@@ -251,6 +263,7 @@ SELECT
   r.max_num_seqs,
   c.profile_name,
   c.profile_version,
+  c.profile_id,
   c.total_run_cost_usd,
   c.request_cost_sum_usd,
   r.duration_seconds

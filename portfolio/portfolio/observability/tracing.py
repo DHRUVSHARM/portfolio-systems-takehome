@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager, nullcontext
+from contextlib import contextmanager
 from typing import Any
 
 from opentelemetry import context, propagate, trace
@@ -83,6 +83,11 @@ def reset_observability_for_tests() -> None:
     _memory_exporter = None
     _tracing_enabled = True
     _sample_ratio = 1.0
+    try:
+        trace._TRACER_PROVIDER = None
+        trace._TRACER_PROVIDER_SET_ONCE._done = False
+    except Exception:
+        pass
 
 
 def get_finished_spans():
@@ -105,10 +110,12 @@ def start_as_current_span(name: str, attributes: dict[str, Any] | None = None):
 
     try:
         manager = get_tracer().start_as_current_span(name)
+        span = manager.__enter__()
     except Exception:
-        manager = nullcontext(trace.INVALID_SPAN)
+        yield trace.INVALID_SPAN
+        return
 
-    with manager as span:
+    try:
         try:
             if attributes:
                 for key, value in attributes.items():
@@ -116,7 +123,21 @@ def start_as_current_span(name: str, attributes: dict[str, Any] | None = None):
                         span.set_attribute(key, value)
         except Exception:
             pass
-        yield trace.INVALID_SPAN
+        try:
+            yield span
+        except BaseException as exc:
+            try:
+                manager.__exit__(type(exc), exc, exc.__traceback__)
+            except Exception:
+                pass
+            raise
+        else:
+            try:
+                manager.__exit__(None, None, None)
+            except Exception:
+                pass
+    finally:
+        pass
 
 
 def inject_trace_context(headers: dict[str, str]) -> dict[str, str]:

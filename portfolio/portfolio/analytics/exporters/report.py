@@ -46,4 +46,7 @@ def build_report_from_artifacts(output_dir: Path | str) -> dict[str, Any]:
         "total_run_cost_usd": sum(row["total_cost_usd"] for row in request_costs),
         "assignment_metrics": metrics["metrics"],
         "agent_costs": agent_costs,
+        "query_type_breakdown": json.loads(
+            (run_dir / "charts" / "query_type_breakdown.json").read_text()
+        )["groups"],
     }

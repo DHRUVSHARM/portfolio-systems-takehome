@@ -1,10 +1,11 @@
 import asyncio
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 import io
 import json
 import logging
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 import httpx
 
@@ -85,8 +86,7 @@ class RuntimePortfolioClient:
 
 
 class Phase6ObservabilityTests(unittest.IsolatedAsyncioTestCase):
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         reset_observability_for_tests()
         configure_tracing(
             ObservabilityConfig(service_name="phase6-test", tracing_sample_ratio=1.0),
@@ -208,6 +208,78 @@ class Phase6ObservabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(row["query_id"], "query-obs")
         self.assertIn("trace_id", row)
         self.assertIn("span_id", row)
+
+    async def test_dynamic_span_attributes_are_recorded(self):
+        before = len(get_finished_spans())
+        gateway_app = self._app()
+
+        async with _lifespan_client(gateway_app) as gateway_client:
+            response = await _post_gateway(gateway_client)
+
+        self.assertEqual(response.status_code, 200)
+        spans = get_finished_spans()[before:]
+        by_name = {span.name: span for span in spans}
+        root_attrs = by_name["POST /v1/analyze"].attributes
+        inference_attrs = by_name["inference.request"].attributes
+
+        self.assertEqual(root_attrs["n_holdings"], 1)
+        self.assertEqual(root_attrs["lookback_days"], 30)
+        self.assertEqual(inference_attrs["http.status_code"], 200)
+        self.assertEqual(inference_attrs["llm.prompt_tokens"], 10)
+        self.assertEqual(inference_attrs["llm.completion_tokens"], 5)
+        self.assertEqual(inference_attrs["llm.total_tokens"], 15)
+
+    def test_metrics_agent_span_and_timer_cover_post_price_calculations(self):
+        events = []
+
+        class Price:
+            def get_history(self, ticker, lookback_days=365):
+                del ticker, lookback_days
+                events.append("price-history")
+                return {
+                    "ticker": "SLOW",
+                    "dates": [],
+                    "closes": [100.0, 101.0, 102.0, 103.0],
+                    "source": "test",
+                }
+
+        @contextmanager
+        def fake_span(name, attributes=None):
+            del attributes
+            events.append(f"span-enter:{name}")
+            yield object()
+            events.append(f"span-exit:{name}")
+
+        @contextmanager
+        def fake_agent_timer(agent):
+            events.append(f"timer-enter:{agent}")
+            yield
+            events.append(f"timer-exit:{agent}")
+
+        agent = MetricsAgent(price_agent=StaticPriceAgent())
+        original = agent._max_drawdown
+
+        def slow_drawdown(closes):
+            events.append("drawdown")
+            return original(closes)
+
+        agent._max_drawdown = slow_drawdown
+        agent.price = Price()
+
+        with patch(
+            "portfolio.portfolio.agents.metrics_agent.start_as_current_span",
+            side_effect=fake_span,
+        ), patch(
+            "portfolio.portfolio.agents.metrics_agent.portfolio_metrics.agent_timer",
+            side_effect=fake_agent_timer,
+        ):
+            result = agent.compute("SLOW", 30)
+
+        self.assertEqual(result["ticker"], "SLOW")
+        self.assertLess(events.index("span-enter:MetricsAgent[SLOW]"), events.index("price-history"))
+        self.assertLess(events.index("price-history"), events.index("drawdown"))
+        self.assertLess(events.index("drawdown"), events.index("span-exit:MetricsAgent[SLOW]"))
+        self.assertLess(events.index("drawdown"), events.index("timer-exit:MetricsAgent"))
 
     async def test_telemetry_export_failure_does_not_fail_workflow_request(self):
         configure_tracing(
@@ -336,6 +408,8 @@ def portfolio_metrics_text():
     from portfolio.portfolio.observability import render_portfolio_metrics
 
     return render_portfolio_metrics().decode()
+
+
 
 
 if __name__ == "__main__":

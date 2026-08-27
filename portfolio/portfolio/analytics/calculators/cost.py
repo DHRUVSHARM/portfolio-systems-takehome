@@ -19,6 +19,7 @@ from ..models import (
 )
 
 REQUIRED_AGENTS = ("PriceAgent", "MetricsAgent", "RiskAgent", "AdvisorAgent")
+CPU_AGENTS = ("PriceAgent", "MetricsAgent", "RiskAgent")
 ACCOUNTING_TOLERANCE = 1e-9
 
 
@@ -29,7 +30,7 @@ def total_run_cost_usd(dataset: AnalyticsDataset, profile: CostProfile) -> float
 def calculate_costs(dataset: AnalyticsDataset, profile: CostProfile) -> CostAnalysis:
     total = total_run_cost_usd(dataset, profile)
     request_costs = _allocate_request_costs(dataset, profile, total)
-    agent_costs = _allocate_agent_costs(dataset, total)
+    agent_costs = _allocate_agent_costs(dataset, profile, total)
     metrics = _assignment_metrics(dataset, profile, total, request_costs, agent_costs)
     return CostAnalysis(
         run_id=dataset.run.run_id,
@@ -84,6 +85,7 @@ def _allocate_request_costs(
         rows.append(
             RequestCost(
                 run_id=request.run_id,
+                profile_id=profile.profile_id,
                 request_id=request.request_id,
                 query_id=request.query_id,
                 success=request.success,
@@ -136,8 +138,12 @@ def _allocate_pool(
 
 def _cpu_seconds_by_request(dataset: AnalyticsDataset) -> dict[str, float]:
     by_request: dict[str, float] = defaultdict(float)
+    exclusive_work = _exclusive_cpu_work_ms(dataset)
     for observation in dataset.execution_observations:
-        by_request[observation.request_id] += observation.cpu_seconds
+        if observation.agent in CPU_AGENTS:
+            by_request[observation.request_id] += (
+                exclusive_work[id(observation)] / 1000.0
+            )
     return dict(by_request)
 
 
@@ -155,22 +161,25 @@ def _token_work_by_request(
     return dict(by_request)
 
 
-def _allocate_agent_costs(dataset: AnalyticsDataset, total: float) -> list[AgentCost]:
+def _allocate_agent_costs(
+    dataset: AnalyticsDataset, profile: CostProfile, total: float
+) -> list[AgentCost]:
     wall_by_agent: dict[str, float] = defaultdict(float)
     cpu_by_agent: dict[str, float] = defaultdict(float)
     latencies_by_agent: dict[str, list[float]] = defaultdict(list)
     failures_by_agent: dict[str, int] = defaultdict(int)
     calls_by_agent: dict[str, int] = defaultdict(int)
+    exclusive_work = _exclusive_cpu_work_ms(dataset)
 
     for observation in dataset.execution_observations:
         wall = max(observation.wall_time_ms or 0.0, 0.0)
-        cpu = max(observation.cpu_time_ms or wall, 0.0)
         wall_by_agent[observation.agent] += wall
-        cpu_by_agent[observation.agent] += cpu
         latencies_by_agent[observation.agent].append(wall)
         calls_by_agent[observation.agent] += 1
         if observation.status != "success":
             failures_by_agent[observation.agent] += 1
+        if observation.agent in CPU_AGENTS:
+            cpu_by_agent[observation.agent] += exclusive_work[id(observation)]
 
     for observation in dataset.inference_observations:
         wall = max(observation.elapsed_ms, 0.0)
@@ -180,30 +189,30 @@ def _allocate_agent_costs(dataset: AnalyticsDataset, total: float) -> list[Agent
         if observation.status < 200 or observation.status >= 300:
             failures_by_agent[observation.agent] += 1
 
-    for agent in REQUIRED_AGENTS:
-        wall_by_agent.setdefault(agent, 0.0)
-        cpu_by_agent.setdefault(agent, 0.0)
-        latencies_by_agent.setdefault(agent, [])
-        failures_by_agent.setdefault(agent, 0)
-        calls_by_agent.setdefault(agent, 0)
+    cost_by_agent = {agent: 0.0 for agent in REQUIRED_AGENTS}
+    cost_by_agent["overhead_unallocated"] = total * profile.overhead_pool_fraction
 
-    total_weight = sum(wall_by_agent.values())
-    if total_weight <= 0.0:
-        wall_by_agent["overhead_unallocated"] = 1.0
-        latencies_by_agent["overhead_unallocated"] = []
-        calls_by_agent["overhead_unallocated"] = 0
-        failures_by_agent["overhead_unallocated"] = 0
-        cpu_by_agent["overhead_unallocated"] = 0.0
-        total_weight = 1.0
+    cpu_pool = total * profile.cpu_pool_fraction
+    cpu_weight_total = sum(cpu_by_agent.get(agent, 0.0) for agent in CPU_AGENTS)
+    if cpu_pool and cpu_weight_total > 0.0:
+        for agent in CPU_AGENTS:
+            cost_by_agent[agent] += (
+                cpu_pool * cpu_by_agent.get(agent, 0.0) / cpu_weight_total
+            )
+    else:
+        cost_by_agent["overhead_unallocated"] += cpu_pool
+
+    cost_by_agent["AdvisorAgent"] += total * profile.gpu_pool_fraction
 
     rows: list[AgentCost] = []
-    for agent in sorted(wall_by_agent):
-        cost = total * wall_by_agent[agent] / total_weight
+    for agent in sorted(cost_by_agent):
+        cost = cost_by_agent[agent]
         percent = 0.0 if total == 0.0 else cost / total * 100.0
         latencies = latencies_by_agent[agent]
         rows.append(
             AgentCost(
                 run_id=dataset.run.run_id,
+                profile_id=profile.profile_id,
                 agent=agent,
                 calls=calls_by_agent[agent],
                 wall_time_ms=wall_by_agent[agent],
@@ -214,7 +223,17 @@ def _allocate_agent_costs(dataset: AnalyticsDataset, total: float) -> list[Agent
                 failures=failures_by_agent[agent],
                 attributed_cost_usd=cost,
                 cost_percentage=percent,
-                raw={"boundary": "execution and inference observations"},
+                raw={
+                    "boundary": "non-overlapping configured pools",
+                    "cpu_method": (
+                        "cpu_time_ms exclusive"
+                        if _has_any_cpu_time(dataset)
+                        else "exclusive wall_time_ms proxy"
+                    ),
+                    "gpu_method": "AdvisorAgent shared inference pool",
+                    "overhead_method": "explicit overhead_unallocated pool",
+                    "profile": profile.profile_id,
+                },
             )
         )
 
@@ -315,6 +334,7 @@ def _metric(
         version="1.0",
         value=value,
         calculated_at=calculated_at,
+        cost_profile_id=profile.profile_id,
         cost_profile_name=profile.name,
         cost_profile_version=profile.version,
         raw=raw or {},
@@ -326,3 +346,41 @@ def _tokens_per_dollar(dataset: AnalyticsDataset, total: float) -> float:
         return 0.0
     tokens = sum(item.total_tokens or 0 for item in dataset.inference_observations)
     return tokens / total
+
+
+def _exclusive_cpu_work_ms(dataset: AnalyticsDataset) -> dict[int, float]:
+    by_observation_id = {
+        observation.observation_id: observation
+        for observation in dataset.execution_observations
+        if observation.observation_id is not None
+    }
+    children: dict[str, list[Any]] = defaultdict(list)
+    for observation in dataset.execution_observations:
+        if (
+            observation.parent_observation_id is not None
+            and observation.parent_observation_id in by_observation_id
+        ):
+            children[observation.parent_observation_id].append(observation)
+
+    work: dict[int, float] = {}
+    for observation in dataset.execution_observations:
+        base = _work_ms(observation)
+        child_work = sum(
+            _work_ms(child)
+            for child in children.get(observation.observation_id or "", ())
+        )
+        work[id(observation)] = max(base - child_work, 0.0)
+    return work
+
+
+def _work_ms(observation: Any) -> float:
+    if observation.cpu_time_ms is not None:
+        return max(float(observation.cpu_time_ms), 0.0)
+    return max(float(observation.wall_time_ms or 0.0), 0.0)
+
+
+def _has_any_cpu_time(dataset: AnalyticsDataset) -> bool:
+    return any(
+        observation.cpu_time_ms is not None
+        for observation in dataset.execution_observations
+    )

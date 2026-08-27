@@ -303,6 +303,13 @@ class PostgresAnalyticsRepository:
                   total_run_cost_usd, request_cost_sum_usd, raw
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (run_id, profile_id) DO UPDATE SET
+                  profile_name = EXCLUDED.profile_name,
+                  profile_version = EXCLUDED.profile_version,
+                  generated_at = now(),
+                  total_run_cost_usd = EXCLUDED.total_run_cost_usd,
+                  request_cost_sum_usd = EXCLUDED.request_cost_sum_usd,
+                  raw = EXCLUDED.raw
                 """,
                 (
                     analysis.run_id,
@@ -318,14 +325,26 @@ class PostgresAnalyticsRepository:
                 cursor.execute(
                     """
                     INSERT INTO request_cost_attributions (
-                      run_id, request_id, query_id, success, total_cost_usd,
+                      run_id, profile_id, request_id, query_id, success, total_cost_usd,
                       cpu_cost_usd, gpu_cost_usd, overhead_cost_usd, cpu_seconds,
                       token_work, wall_seconds, raw
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (run_id, profile_id, request_id) DO UPDATE SET
+                      query_id = EXCLUDED.query_id,
+                      success = EXCLUDED.success,
+                      total_cost_usd = EXCLUDED.total_cost_usd,
+                      cpu_cost_usd = EXCLUDED.cpu_cost_usd,
+                      gpu_cost_usd = EXCLUDED.gpu_cost_usd,
+                      overhead_cost_usd = EXCLUDED.overhead_cost_usd,
+                      cpu_seconds = EXCLUDED.cpu_seconds,
+                      token_work = EXCLUDED.token_work,
+                      wall_seconds = EXCLUDED.wall_seconds,
+                      raw = EXCLUDED.raw
                     """,
                     (
                         row.run_id,
+                        row.profile_id,
                         row.request_id,
                         row.query_id,
                         row.success,
@@ -343,14 +362,26 @@ class PostgresAnalyticsRepository:
                 cursor.execute(
                     """
                     INSERT INTO agent_cost_attributions (
-                      run_id, agent, calls, wall_time_ms, cpu_time_ms,
+                      run_id, profile_id, agent, calls, wall_time_ms, cpu_time_ms,
                       p50_latency_ms, p95_latency_ms, p99_latency_ms, failures,
                       attributed_cost_usd, cost_percentage, raw
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (run_id, profile_id, agent) DO UPDATE SET
+                      calls = EXCLUDED.calls,
+                      wall_time_ms = EXCLUDED.wall_time_ms,
+                      cpu_time_ms = EXCLUDED.cpu_time_ms,
+                      p50_latency_ms = EXCLUDED.p50_latency_ms,
+                      p95_latency_ms = EXCLUDED.p95_latency_ms,
+                      p99_latency_ms = EXCLUDED.p99_latency_ms,
+                      failures = EXCLUDED.failures,
+                      attributed_cost_usd = EXCLUDED.attributed_cost_usd,
+                      cost_percentage = EXCLUDED.cost_percentage,
+                      raw = EXCLUDED.raw
                     """,
                     (
                         row.run_id,
+                        row.profile_id,
                         row.agent,
                         row.calls,
                         row.wall_time_ms,
@@ -368,13 +399,21 @@ class PostgresAnalyticsRepository:
                 cursor.execute(
                     """
                     INSERT INTO derived_metrics (
-                      run_id, metric_name, metric_version, calculated_at,
+                      run_id, profile_id, metric_name, metric_version, calculated_at,
                       cost_profile_name, cost_profile_version, value, raw
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (run_id, profile_id, metric_name, metric_version)
+                    DO UPDATE SET
+                      calculated_at = EXCLUDED.calculated_at,
+                      cost_profile_name = EXCLUDED.cost_profile_name,
+                      cost_profile_version = EXCLUDED.cost_profile_version,
+                      value = EXCLUDED.value,
+                      raw = EXCLUDED.raw
                     """,
                     (
                         row.run_id,
+                        row.cost_profile_id,
                         row.name,
                         row.version,
                         row.calculated_at,

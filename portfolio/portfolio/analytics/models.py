@@ -283,6 +283,7 @@ class CostProfile:
 @dataclass(frozen=True)
 class RequestCost:
     run_id: str
+    profile_id: str
     request_id: str
     query_id: str
     success: bool
@@ -299,6 +300,7 @@ class RequestCost:
 @dataclass(frozen=True)
 class AgentCost:
     run_id: str
+    profile_id: str
     agent: str
     calls: int
     wall_time_ms: float
@@ -319,6 +321,7 @@ class DerivedMetric:
     version: str
     value: Any
     calculated_at: str
+    cost_profile_id: str | None = None
     cost_profile_name: str | None = None
     cost_profile_version: str | None = None
     raw: RawDict = field(default_factory=dict)

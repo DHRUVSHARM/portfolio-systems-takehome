@@ -46,40 +46,40 @@ class MetricsAgent(object):
                 history = self.price.get_history(
                     ticker=ticker, lookback_days=lookback_days
                 )
-        closes = history.get("closes", [])
+            closes = history.get("closes", [])
 
-        if len(closes) < 2:
-            return {"ticker": ticker, "error": "insufficient price data"}
+            if len(closes) < 2:
+                return {"ticker": ticker, "error": "insufficient price data"}
 
-        # Simple daily returns.
-        returns = [
-            (closes[i] / closes[i - 1]) - 1.0 for i in range(1, len(closes))
-        ]
+            # Simple daily returns.
+            returns = [
+                (closes[i] / closes[i - 1]) - 1.0 for i in range(1, len(closes))
+            ]
 
-        mean_daily = sum(returns) / len(returns)
-        var_daily = sum((r - mean_daily) ** 2 for r in returns) / len(returns)
-        std_daily = math.sqrt(var_daily)
+            mean_daily = sum(returns) / len(returns)
+            var_daily = sum((r - mean_daily) ** 2 for r in returns) / len(returns)
+            std_daily = math.sqrt(var_daily)
 
-        ann_return = mean_daily * TRADING_DAYS
-        ann_vol = std_daily * math.sqrt(TRADING_DAYS)
-        sharpe = (ann_return / ann_vol) if ann_vol > 0 else 0.0
+            ann_return = mean_daily * TRADING_DAYS
+            ann_vol = std_daily * math.sqrt(TRADING_DAYS)
+            sharpe = (ann_return / ann_vol) if ann_vol > 0 else 0.0
 
-        total_return = (closes[-1] / closes[0]) - 1.0
-        max_drawdown = self._max_drawdown(closes)
+            total_return = (closes[-1] / closes[0]) - 1.0
+            max_drawdown = self._max_drawdown(closes)
 
-        return {
-            "ticker": ticker,
-            "source": history.get("source"),
-            "last_price": round(closes[-1], 2),
-            "n_days": len(closes),
-            "total_return": round(total_return, 4),
-            "annualized_return": round(ann_return, 4),
-            "annualized_volatility": round(ann_vol, 4),
-            "sharpe": round(sharpe, 3),
-            "max_drawdown": round(max_drawdown, 4),
-            # Raw daily returns for portfolio-level covariance downstream.
-            "returns": [round(r, 6) for r in returns],
-        }
+            return {
+                "ticker": ticker,
+                "source": history.get("source"),
+                "last_price": round(closes[-1], 2),
+                "n_days": len(closes),
+                "total_return": round(total_return, 4),
+                "annualized_return": round(ann_return, 4),
+                "annualized_volatility": round(ann_vol, 4),
+                "sharpe": round(sharpe, 3),
+                "max_drawdown": round(max_drawdown, 4),
+                # Raw daily returns for portfolio-level covariance downstream.
+                "returns": [round(r, 6) for r in returns],
+            }
 
     def _max_drawdown(self, closes: list) -> float:
         """Largest peak-to-trough decline over the period (negative number)."""

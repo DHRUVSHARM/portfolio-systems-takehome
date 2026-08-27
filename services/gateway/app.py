@@ -165,15 +165,15 @@ def create_app(
                             headers=correlation_headers,
                         ) from exc
 
-                    gateway_metrics.queue_wait_duration_seconds.labels("admitted").observe(
-                        time.perf_counter() - wait_started
-                    )
-                    snapshot = await admission.snapshot()
-                    gateway_metrics.set_admission_snapshot(
-                        active=snapshot.active, waiting=snapshot.waiting
-                    )
-
                     async with lease:
+                        gateway_metrics.queue_wait_duration_seconds.labels("admitted").observe(
+                            time.perf_counter() - wait_started
+                        )
+                        snapshot = await admission.snapshot()
+                        gateway_metrics.set_admission_snapshot(
+                            active=snapshot.active, waiting=snapshot.waiting
+                        )
+
                         response.headers["X-Request-ID"] = request_id
                         if x_run_id is not None:
                             response.headers["X-Run-ID"] = x_run_id

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from concurrent.futures import Future, InvalidStateError
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
@@ -163,22 +164,55 @@ class PortfolioRuntime:
             return await self._run_cpu(
                 self.metrics_agent.compute,
                 acquired_semaphores=(self._metric_semaphore,),
+                release_callbacks=(portfolio_metrics.metric_tasks_running.dec,),
                 ticker=ticker,
                 lookback_days=lookback_days,
             )
         finally:
             if waiting:
                 portfolio_metrics.metric_tasks_waiting.dec()
-            else:
-                portfolio_metrics.metric_tasks_running.dec()
 
-    async def _run_cpu(self, func, /, acquired_semaphores=(), **kwargs):
+    async def _run_cpu(
+        self,
+        func,
+        /,
+        acquired_semaphores=(),
+        release_callbacks: tuple[Callable[[], object], ...] = (),
+        **kwargs,
+    ):
+        loop = asyncio.get_running_loop()
         future = None
+        released = asyncio.Event()
+        release_lock = threading.Lock()
+        release_scheduled = False
         cpu_acquired = False
         cpu_waiting = True
-        release_in_finally = True
         self._cpu_waiting_count += 1
         self._record_cpu_slots()
+
+        def release_resources() -> None:
+            nonlocal release_scheduled
+            with release_lock:
+                if release_scheduled:
+                    return
+                release_scheduled = True
+            loop.call_soon_threadsafe(release_on_loop)
+
+        def release_on_loop() -> None:
+            nonlocal cpu_acquired
+            if cpu_acquired:
+                self._cpu_semaphore.release()
+                cpu_acquired = False
+            for semaphore in acquired_semaphores:
+                semaphore.release()
+            for callback in release_callbacks:
+                try:
+                    callback()
+                except Exception:
+                    pass
+            self._record_cpu_slots()
+            released.set()
+
         try:
             await self._cpu_semaphore.acquire()
             self._cpu_waiting_count -= 1
@@ -190,14 +224,22 @@ class PortfolioRuntime:
             future = self._executor.submit(
                 _run_with_otel_context, current_context, call
             )
-            while not future.done():
-                await asyncio.sleep(0.001)
-            return future.result()
+            future.add_done_callback(lambda _future: release_resources())
+            wrapped = asyncio.wrap_future(future)
+            try:
+                result = await wrapped
+            except asyncio.CancelledError:
+                future.cancel()
+                raise
+            except BaseException:
+                await released.wait()
+                raise
+            else:
+                await released.wait()
+                return result
         except asyncio.CancelledError:
             if future is not None:
                 future.cancel()
-                while not future.done():
-                    await asyncio.sleep(0.001)
             raise
         finally:
             if future is None:
@@ -205,13 +247,14 @@ class PortfolioRuntime:
                     self._cpu_waiting_count -= 1
                 if cpu_acquired:
                     self._cpu_semaphore.release()
+                    cpu_acquired = False
                 for semaphore in acquired_semaphores:
                     semaphore.release()
-                self._record_cpu_slots()
-            elif release_in_finally:
-                self._cpu_semaphore.release()
-                for semaphore in acquired_semaphores:
-                    semaphore.release()
+                for callback in release_callbacks:
+                    try:
+                        callback()
+                    except Exception:
+                        pass
                 self._record_cpu_slots()
 
     async def _summarize(

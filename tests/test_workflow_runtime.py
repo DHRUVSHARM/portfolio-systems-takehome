@@ -1,5 +1,6 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor as RealThreadPoolExecutor
+import inspect
 import threading
 import time
 import unittest
@@ -170,7 +171,8 @@ class RecordingAdvisorAgent:
         self.events = events or EventLog()
         self.called = False
 
-    async def summarize_async(self, holdings, metrics, risk):
+    async def summarize_async(self, holdings, metrics, risk, context=None):
+        del context
         self.called = True
         self.events.append("advisor-start", tuple(metrics))
         return "async summary"
@@ -380,19 +382,39 @@ class WorkflowRuntimeTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.sleep(0.01)
         self.assertTrue(started.is_set())
         task.cancel()
+        cancelled_started = time.perf_counter()
 
         with self.assertRaises(asyncio.CancelledError):
             await task
+        self.assertLess(time.perf_counter() - cancelled_started, 0.1)
 
         self.assertFalse(risk_agent.called)
         self.assertFalse(advisor.called)
+        self.assertEqual(self.runtime._cpu_semaphore._value, 0)
+        self.assertEqual(self.runtime._metric_semaphore._value, 0)
         release.set()
+        for _ in range(100):
+            if (
+                self.runtime._cpu_semaphore._value == 2
+                and self.runtime._metric_semaphore._value == 2
+            ):
+                break
+            await asyncio.sleep(0.01)
+        self.assertEqual(self.runtime._cpu_semaphore._value, 2)
+        self.assertEqual(self.runtime._metric_semaphore._value, 2)
 
         result = await self.runtime.analyze(
             holdings={"GOOGL": 1.0},
             lookback_days=180,
         )
         self.assertEqual(result["summary"], "async summary")
+
+    async def test_executor_future_bridge_does_not_poll(self):
+        source = inspect.getsource(PortfolioRuntime._run_cpu)
+
+        self.assertIn("asyncio.wrap_future", source)
+        self.assertNotIn("while not future.done()", source)
+        self.assertNotIn("asyncio.sleep(0.001)", source)
 
     async def test_z_sync_advisor_compatibility_does_not_block_event_loop(self):
         advisor = BlockingSyncAdvisorAgent(delay=0.15)

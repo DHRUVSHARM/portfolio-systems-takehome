@@ -23,6 +23,13 @@ class AdmissionSnapshot:
     queue_capacity: int
 
 
+@dataclass
+class _AdmissionWaiter:
+    future: asyncio.Future[None]
+    granted: bool = False
+    claimed: bool = False
+
+
 class AdmissionLease:
     def __init__(self, controller: "AdmissionController") -> None:
         self._controller = controller
@@ -53,7 +60,7 @@ class AdmissionController:
         self.max_in_flight = max_in_flight
         self.queue_capacity = queue_capacity
         self._active = 0
-        self._queue: deque[asyncio.Future[None]] = deque()
+        self._queue: deque[_AdmissionWaiter] = deque()
         self._lock = asyncio.Lock()
 
     async def acquire(self, *, queue_timeout_seconds: float) -> AdmissionLease:
@@ -63,7 +70,7 @@ class AdmissionController:
             raise ValueError("queue_timeout_seconds must be positive")
 
         loop = asyncio.get_running_loop()
-        waiter: asyncio.Future[None] | None = None
+        waiter: _AdmissionWaiter | None = None
 
         async with self._lock:
             if self._active < self.max_in_flight:
@@ -73,16 +80,19 @@ class AdmissionController:
             if len(self._queue) >= self.queue_capacity:
                 raise AdmissionRejected("gateway admission queue is full")
 
-            waiter = loop.create_future()
+            waiter = _AdmissionWaiter(loop.create_future())
             self._queue.append(waiter)
 
         try:
-            await asyncio.wait_for(waiter, timeout=queue_timeout_seconds)
+            await asyncio.wait_for(waiter.future, timeout=queue_timeout_seconds)
+            if not waiter.granted:
+                raise RuntimeError("gateway admission waiter completed without handoff")
+            waiter.claimed = True
         except TimeoutError as exc:
-            await self._remove_waiter(waiter)
+            await self._cancel_waiter(waiter)
             raise AdmissionQueueTimeout("gateway admission queue timed out") from exc
         except asyncio.CancelledError:
-            await self._remove_waiter(waiter)
+            await self._cancel_waiter(waiter)
             raise
 
         return AdmissionLease(self)
@@ -91,23 +101,36 @@ class AdmissionController:
         """Release active capacity, transferring it to the next waiter if present."""
 
         async with self._lock:
-            while self._queue:
-                waiter = self._queue.popleft()
-                if waiter.cancelled() or waiter.done():
-                    continue
-                waiter.set_result(None)
-                return
-
             if self._active <= 0:
                 raise RuntimeError("gateway admission release without acquire")
+            if self._grant_next_locked():
+                return
             self._active -= 1
 
-    async def _remove_waiter(self, waiter: asyncio.Future[None]) -> None:
+    async def _cancel_waiter(self, waiter: _AdmissionWaiter) -> None:
         async with self._lock:
+            if waiter.claimed:
+                return
+            if waiter.granted:
+                if not self._grant_next_locked():
+                    self._active -= 1
+                waiter.claimed = True
+                return
             try:
                 self._queue.remove(waiter)
             except ValueError:
                 pass
+            waiter.future.cancel()
+
+    def _grant_next_locked(self) -> bool:
+        while self._queue:
+            waiter = self._queue.popleft()
+            if waiter.future.cancelled() or waiter.future.done():
+                continue
+            waiter.granted = True
+            waiter.future.set_result(None)
+            return True
+        return False
 
     async def snapshot(self) -> AdmissionSnapshot:
         async with self._lock:

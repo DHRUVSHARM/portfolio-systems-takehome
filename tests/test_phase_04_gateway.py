@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 import threading
 import time
@@ -6,6 +7,7 @@ import unittest
 import httpx
 
 from services.gateway import GatewayConfig, create_app
+from services.gateway.admission import AdmissionController
 from services.gateway.client import (
     DownstreamResult,
     DownstreamTimeoutError,
@@ -243,7 +245,9 @@ class Phase4GatewayTests(unittest.IsolatedAsyncioTestCase):
             response = await _post(client, headers=headers)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(downstream.calls[0]["headers"], headers)
+        for name, value in headers.items():
+            self.assertEqual(downstream.calls[0]["headers"][name], value)
+        self.assertIn("traceparent", downstream.calls[0]["headers"])
         self.assertEqual(response.headers["X-Run-ID"], "run-1")
         self.assertEqual(response.headers["X-Request-ID"], "request-1")
         self.assertEqual(response.headers["X-Query-ID"], "query-1")
@@ -306,6 +310,29 @@ class Phase4GatewayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(statuses.count(503), 32)
         self.assertLessEqual(threading.active_count(), before_threads + 1)
 
+    async def test_admission_handoff_cancellation_does_not_leak_active_capacity(self):
+        admission = AdmissionController(max_in_flight=1, queue_capacity=2)
+        first = await admission.acquire(queue_timeout_seconds=1)
+        queued = asyncio.create_task(admission.acquire(queue_timeout_seconds=1))
+        await _wait_for_admission_waiting(admission, 1)
+
+        release_task = asyncio.create_task(first.release())
+        queued.cancel()
+        await _ignore_cancelled(queued)
+        await release_task
+
+        for _ in range(100):
+            snapshot = await admission.snapshot()
+            if snapshot.active == 0 and snapshot.waiting == 0:
+                break
+            await anyio_sleep(0.001)
+
+        snapshot = await admission.snapshot()
+        self.assertEqual(snapshot.active, 0)
+        self.assertEqual(snapshot.waiting, 0)
+        second = await admission.acquire(queue_timeout_seconds=1)
+        await second.release()
+
 
 def _app_for(downstream, config):
     return create_app(config=config, client_factory=lambda _config: downstream)
@@ -360,6 +387,15 @@ async def _wait_for_call_count(downstream, count):
 async def _wait_for_waiting(app, count):
     for _ in range(100):
         snapshot = await app.state.admission.snapshot()
+        if snapshot.waiting >= count:
+            return
+        await anyio_sleep(0.001)
+    raise AssertionError(f"expected {count} queued waiters")
+
+
+async def _wait_for_admission_waiting(admission, count):
+    for _ in range(100):
+        snapshot = await admission.snapshot()
         if snapshot.waiting >= count:
             return
         await anyio_sleep(0.001)
