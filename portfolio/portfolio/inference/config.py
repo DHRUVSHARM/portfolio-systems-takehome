@@ -15,6 +15,7 @@ class InferenceClientConfig:
     temperature: float = 0.0
     api_key: str | None = None
     retry_count: int = 0
+    enable_thinking: bool | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.base_url, str) or not self.base_url.strip():
@@ -31,6 +32,8 @@ class InferenceClientConfig:
             raise ValueError("temperature must be a non-negative number")
         if not isinstance(self.retry_count, int) or self.retry_count < 0:
             raise ValueError("retry_count must be a non-negative integer")
+        if self.enable_thinking is not None and not isinstance(self.enable_thinking, bool):
+            raise ValueError("enable_thinking must be a boolean or None")
 
     @property
     def chat_completions_url(self) -> str:

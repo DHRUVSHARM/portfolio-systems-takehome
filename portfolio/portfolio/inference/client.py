@@ -61,6 +61,11 @@ class OpenAICompatibleInferenceClient:
             "max_tokens": self.config.max_tokens,
             "stream": False,
         }
+        if self.config.enable_thinking is not None:
+            payload["chat_template_kwargs"] = {
+                "enable_thinking": self.config.enable_thinking,
+            }
+
         headers = {}
         if self.config.api_key:
             headers["Authorization"] = f"Bearer {self.config.api_key}"

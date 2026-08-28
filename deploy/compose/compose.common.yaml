@@ -241,8 +241,6 @@ services:
       context: ../..
       dockerfile: deploy/docker/deployment-tools.Dockerfile
     environment:
-      HF_TOKEN: ${HF_TOKEN:-}
-      HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN:-}
       VLLM_MODEL: ${VLLM_MODEL:-Qwen/Qwen3-4B-Instruct-2507}
       VLLM_MODEL_REVISION: ${VLLM_MODEL_REVISION:-}
     volumes:
@@ -251,6 +249,7 @@ services:
     networks:
       - backend
       - observability
+      - egress
     command:
       - python
       - -m
@@ -268,6 +267,7 @@ networks:
     internal: true
   observability:
     internal: true
+  egress:
 
 volumes:
   postgres-data:

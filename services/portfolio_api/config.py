@@ -30,6 +30,7 @@ class PortfolioApiConfig:
     inference_temperature: float = 0.0
     inference_api_key: str | None = None
     inference_retry_count: int = 0
+    inference_enable_thinking: bool | None = None
 
     @classmethod
     def from_env(cls) -> "PortfolioApiConfig":
@@ -58,6 +59,9 @@ class PortfolioApiConfig:
             inference_retry_count=_env_int(
                 "PORTFOLIO_INFERENCE_RETRY_COUNT", default=0
             ),
+            inference_enable_thinking=_env_optional_bool(
+                "PORTFOLIO_INFERENCE_ENABLE_THINKING"
+            ),
         )
 
 
@@ -75,6 +79,7 @@ def build_portfolio_runtime(config: PortfolioApiConfig) -> PortfolioRuntime:
         temperature=config.inference_temperature,
         api_key=config.inference_api_key,
         retry_count=config.inference_retry_count,
+        enable_thinking=config.inference_enable_thinking,
     )
     inference_client = OpenAICompatibleInferenceClient(inference_config)
     advisor = VLLMAdvisorAgent(client=inference_client)
@@ -120,3 +125,14 @@ def _env_float(name: str, *, default: float) -> float:
         return float(value)
     except ValueError as exc:
         raise ValueError(f"{name} must be a number") from exc
+
+def _env_optional_bool(name: str) -> bool | None:
+    value = os.getenv(name)
+    if value is None or not value.strip():
+        return None
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "y", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "n", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean value")

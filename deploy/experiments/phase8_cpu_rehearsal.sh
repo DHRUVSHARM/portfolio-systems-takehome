@@ -6,12 +6,16 @@ ENV_FILE="${ENV_FILE:-$ROOT/deploy/compose/.env}"
 COMPOSE=(docker compose --env-file "$ENV_FILE" -f "$ROOT/deploy/compose/compose.common.yaml" -f "$ROOT/deploy/compose/compose.cpu.yaml")
 RESULTS_DIR="${RESULTS_DIR:-$ROOT/results/phase8}"
 RUN_LABEL="NONCANONICAL_CPU_INTEGRATION"
+ENABLE_HOST_EXPORTERS="${ENABLE_HOST_EXPORTERS:-false}"
 GATEWAY_BASE_URL="${GATEWAY_BASE_URL:-http://localhost:8000}"
 JAEGER_BASE_URL="${JAEGER_BASE_URL:-http://localhost:16686}"
 PROMETHEUS_BASE_URL="${PROMETHEUS_BASE_URL:-http://localhost:9090}"
 COST_PROFILE="$ROOT/configs/cost/reference_cpu_demo.yaml"
 INFERENCE_PROFILE="$ROOT/configs/inference/local-cpu.yaml"
 POSTGRES_DSN_IN_COMPOSE="${POSTGRES_DSN_IN_COMPOSE:-postgresql://portfolio:replace-with-local-secret@postgres:5432/portfolio_analytics}"
+
+ENV_VLLM_MODEL="$(grep -m1 '^VLLM_MODEL=' "$ENV_FILE" | cut -d= -f2- || true)"
+CPU_MODEL="${VLLM_MODEL:-${ENV_VLLM_MODEL:-Qwen/Qwen3-4B-Instruct-2507}}"
 
 mkdir -p "$RESULTS_DIR"
 
@@ -20,8 +24,29 @@ compose() {
 }
 
 start_stack() {
-  compose pull
-  compose up -d postgres jaeger loki alertmanager otel-collector prometheus grafana alloy node-exporter cadvisor vllm portfolio-api gateway
+  compose pull --ignore-pull-failures
+
+  local services=(
+    postgres
+    jaeger
+    loki
+    alertmanager
+    otel-collector
+    prometheus
+    grafana
+    alloy
+    vllm
+    portfolio-api
+    gateway
+  )
+
+  if [[ "$ENABLE_HOST_EXPORTERS" == "true" ]]; then
+    services+=(node-exporter cadvisor)
+  else
+    echo "Skipping node-exporter/cadvisor for local CPU rehearsal"
+  fi
+
+  compose up -d "${services[@]}"
   wait_stack_ready
 }
 
@@ -29,7 +54,7 @@ measure_context() {
   compose run --rm deployment-tools \
     python -m portfolio.portfolio.deployment.context_lengths \
       --dataset-mode sampled_10 \
-      --model "${VLLM_MODEL:-Qwen/Qwen3-4B-Instruct-2507}" \
+      --model "$CPU_MODEL" \
       --generation-allowance 256 \
       --output /results/phase8/context/context_lengths_cpu_rehearsal.json
 }
@@ -91,15 +116,16 @@ print(json.dumps({"status":"ok","fields":sorted(data.keys())}, sort_keys=True))'
 
 small_benchmark() {
   local run_id="$RUN_LABEL-$(date -u +%Y%m%dT%H%M%SZ)"
-  python3 -m portfolio.portfolio.benchmark \
-    --gateway-base-url "$GATEWAY_BASE_URL" \
-    --dataset-mode sampled_10 \
-    --sample-seed 81 \
-    --concurrency 2 \
-    --request-timeout-seconds 180 \
-    --run-id "$run_id" \
-    --run-name "$RUN_LABEL" \
-    --output-root "$RESULTS_DIR/raw"
+  compose run --rm deployment-tools \
+    python -m portfolio.portfolio.benchmark \
+      --gateway-base-url "http://gateway:8000" \
+      --dataset-mode sampled_10 \
+      --sample-seed 81 \
+      --concurrency 2 \
+      --request-timeout-seconds 180 \
+      --run-id "$run_id" \
+      --run-name "$RUN_LABEL" \
+      --output-root "/results/phase8/raw"
   export_telemetry "$run_id"
   collect_run "$run_id"
   verify_artifacts "$run_id"
@@ -109,12 +135,13 @@ export_telemetry() {
   local run_id="$1"
   local telemetry_dir="$RESULTS_DIR/telemetry/$run_id"
   mkdir -p "$telemetry_dir"
-  python3 -m portfolio.portfolio.deployment.telemetry export-run \
-    --run-json "$RESULTS_DIR/raw/$run_id/run.json" \
-    --output-dir "$telemetry_dir" \
-    --jaeger-base-url "$JAEGER_BASE_URL" \
-    --prometheus-base-url "$PROMETHEUS_BASE_URL" \
-    --include-vllm
+  compose run --rm deployment-tools \
+    python -m portfolio.portfolio.deployment.telemetry export-run \
+      --run-json "/results/phase8/raw/$run_id/run.json" \
+      --output-dir "/results/phase8/telemetry/$run_id" \
+      --jaeger-base-url "http://jaeger:16686" \
+      --prometheus-base-url "http://prometheus:9090" \
+      --include-vllm
 }
 
 collect_run() {
