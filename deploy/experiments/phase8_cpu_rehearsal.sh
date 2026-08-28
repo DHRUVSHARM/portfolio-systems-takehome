@@ -142,7 +142,7 @@ root=pathlib.Path(sys.argv[1])
 report=json.loads((root / "report.json").read_text())
 assert report["total_run_cost_usd"] > 0
 assert report["request_cost_sum_usd"] > 0
-assert "cost_per_query_distribution" in report["assignment_metrics"]
+assert "cost_per_query_distribution_usd" in report["assignment_metrics"]
 assert (root / "charts" / "query_type_breakdown.json").exists()
 assert (root / "charts" / "holdings_count_breakdown.json").exists()
 print(json.dumps({"status":"ok","run_id":report["run_id"],"cost_profile":report["cost_profile"]}, sort_keys=True))' "$RESULTS_DIR/analytics/$run_id"
