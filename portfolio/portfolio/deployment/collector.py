@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -23,6 +22,10 @@ from ..analytics.models import (
 )
 from ..analytics.profiles import load_cost_profile
 from .provenance import build_run_provenance, redact_secrets
+
+
+class TelemetryRequiredError(RuntimeError):
+    """Raised when a measured canonical run is missing required telemetry."""
 
 
 def build_dataset_from_artifacts(
@@ -71,9 +74,25 @@ def collect_historical_artifacts(
     prometheus_samples_path: Path | str | None = None,
     inference_profile_path: Path | str | None = None,
     compose_files: list[str | Path] | None = None,
+    require_telemetry: bool = False,
 ) -> Path:
     run_dir = Path(benchmark_run_dir)
     run_metadata = json.loads((run_dir / "run.json").read_text())
+    output_path = Path(output_dir)
+    if require_telemetry:
+        try:
+            _validate_required_telemetry(
+                jaeger_trace_path=jaeger_trace_path,
+                prometheus_samples_path=prometheus_samples_path,
+            )
+        except TelemetryRequiredError as exc:
+            _write_incomplete_report(
+                output_path=output_path,
+                run_metadata=run_metadata,
+                reason=str(exc),
+            )
+            raise
+
     provenance = build_run_provenance(
         run_id=str(run_metadata["run_id"]),
         run_name=run_metadata.get("run_name"),
@@ -90,7 +109,7 @@ def collect_historical_artifacts(
     profile = load_cost_profile(cost_profile_path)
     analysis = calculate_costs(dataset, profile)
     output_path = write_parquet_run_artifacts(
-        output_dir=output_dir,
+        output_dir=output_path,
         dataset=dataset,
         analysis=analysis,
     )
@@ -132,6 +151,56 @@ def _observations_from_jaeger(
         observation_id = _span_observation_id(span)
         status = "error" if tags.get("error") else "success"
 
+        if _is_inference_span(span, tags, stage):
+            inference.append(
+                InferenceObservationRecord(
+                    run_id=run_id,
+                    request_id=request_id,
+                    query_id=query_id,
+                    model=str(tags.get("model") or tags.get("llm.model") or "unknown"),
+                    elapsed_ms=elapsed_ms,
+                    status=int(tags.get("http.status_code") or 0),
+                    agent="AdvisorAgent",
+                    started_at=started_at,
+                    finished_at=finished_at,
+                    prompt_tokens=_optional_int(
+                        tags.get("llm.prompt_tokens", tags.get("prompt_tokens"))
+                    ),
+                    completion_tokens=_optional_int(
+                        tags.get(
+                            "llm.completion_tokens",
+                            tags.get("completion_tokens"),
+                        )
+                    ),
+                    total_tokens=_optional_int(
+                        tags.get("llm.total_tokens", tags.get("total_tokens"))
+                    ),
+                    ttft_ms=_optional_float(tags.get("ttft_ms")),
+                    queue_ms=_optional_float(tags.get("queue_ms")),
+                    prefill_ms=_optional_float(tags.get("prefill_ms")),
+                    decode_ms=_optional_float(tags.get("decode_ms")),
+                    generation_ms=_optional_float(tags.get("generation_ms")),
+                    tokens_per_second=_optional_float(tags.get("tokens_per_second")),
+                    error_type=_optional_str(tags.get("error_type")),
+                    attempt_count=_optional_int(tags.get("inference.attempt")) or 1,
+                    retry_count=_optional_int(tags.get("inference.retry_count")) or 0,
+                    raw=redact_secrets(
+                        {
+                            "source": "jaeger",
+                            "observation_id": observation_id,
+                            "span_id": span.get("spanID") or span.get("span_id"),
+                            "trace_id": span.get("traceID") or span.get("trace_id"),
+                            "aggregate_inference_metrics_note": (
+                                "Prometheus vLLM histograms are kept as run-level "
+                                "resource telemetry unless exact per-request fields "
+                                "are present on this span."
+                            ),
+                        }
+                    ),
+                )
+            )
+            continue
+
         execution.append(
             ExecutionObservation(
                 run_id=run_id,
@@ -151,44 +220,55 @@ def _observations_from_jaeger(
                 raw=redact_secrets({"source": "jaeger", "span": span}),
             )
         )
-        if agent == "AdvisorAgent" or stage == "advisor" or "inference" in stage:
-            inference.append(
-                InferenceObservationRecord(
-                    run_id=run_id,
-                    request_id=request_id,
-                    query_id=query_id,
-                    model=str(tags.get("model") or tags.get("llm.model") or "unknown"),
-                    elapsed_ms=elapsed_ms,
-                    status=int(tags.get("http.status_code") or 200),
-                    agent="AdvisorAgent",
-                    started_at=started_at,
-                    finished_at=finished_at,
-                    prompt_tokens=_optional_int(tags.get("prompt_tokens")),
-                    completion_tokens=_optional_int(tags.get("completion_tokens")),
-                    total_tokens=_optional_int(tags.get("total_tokens")),
-                    ttft_ms=_optional_float(tags.get("ttft_ms")),
-                    queue_ms=_optional_float(tags.get("queue_ms")),
-                    prefill_ms=_optional_float(tags.get("prefill_ms")),
-                    decode_ms=_optional_float(tags.get("decode_ms")),
-                    generation_ms=_optional_float(tags.get("generation_ms")),
-                    tokens_per_second=_optional_float(tags.get("tokens_per_second")),
-                    error_type=_optional_str(tags.get("error_type")),
-                    raw=redact_secrets(
-                        {
-                            "source": "jaeger",
-                            "observation_id": observation_id,
-                            "span_id": span.get("spanID") or span.get("span_id"),
-                            "trace_id": span.get("traceID") or span.get("trace_id"),
-                            "aggregate_inference_metrics_note": (
-                                "Prometheus vLLM histograms are kept as run-level "
-                                "resource telemetry unless exact per-request fields "
-                                "are present on this span."
-                            ),
-                        }
-                    ),
-                )
-            )
     return execution, inference
+
+
+def _validate_required_telemetry(
+    *,
+    jaeger_trace_path: Path | str | None,
+    prometheus_samples_path: Path | str | None,
+) -> None:
+    if jaeger_trace_path is None:
+        raise TelemetryRequiredError("required Jaeger trace JSON was not provided")
+    if prometheus_samples_path is None:
+        raise TelemetryRequiredError("required Prometheus samples JSON was not provided")
+
+    traces = _load_json(jaeger_trace_path)
+    if not _iter_jaeger_spans(traces):
+        raise TelemetryRequiredError(
+            f"required Jaeger telemetry is empty: {jaeger_trace_path}"
+        )
+
+    prometheus = _load_json(prometheus_samples_path)
+    rows = (
+        prometheus
+        if isinstance(prometheus, list)
+        else prometheus.get("data", {}).get("result", [])
+        if isinstance(prometheus, dict)
+        else []
+    )
+    if not any(row.get("values") for row in rows if isinstance(row, dict)):
+        raise TelemetryRequiredError(
+            f"required Prometheus telemetry is empty: {prometheus_samples_path}"
+        )
+
+
+def _write_incomplete_report(
+    *,
+    output_path: Path,
+    run_metadata: dict[str, Any],
+    reason: str,
+) -> None:
+    output_path.mkdir(parents=True, exist_ok=True)
+    _write_json(
+        output_path / "incomplete_report.json",
+        {
+            "run_id": run_metadata.get("run_id"),
+            "status": "incomplete",
+            "invalid_reason": reason,
+            "raw_benchmark_artifacts_preserved": True,
+        },
+    )
 
 
 def _resource_samples_from_prometheus(data: Any, *, run_id: str) -> list[ResourceSample]:
@@ -267,6 +347,22 @@ def _span_tags(span: dict[str, Any]) -> dict[str, Any]:
     if isinstance(attributes, dict):
         tags.update(attributes)
     return tags
+
+
+def _is_inference_span(
+    span: dict[str, Any],
+    tags: dict[str, Any],
+    stage: str,
+) -> bool:
+    operation = str(span.get("operationName") or span.get("name") or "")
+    return (
+        operation == "inference.request"
+        or stage == "inference"
+        or (
+            "inference.attempt" in tags
+            and "inference" in operation.lower()
+        )
+    )
 
 
 def _span_times(span: dict[str, Any]) -> tuple[str, str, float]:
@@ -404,6 +500,7 @@ def main() -> None:
     parser.add_argument("--prometheus-samples-json", type=Path)
     parser.add_argument("--inference-profile", type=Path)
     parser.add_argument("--compose-file", action="append", default=[])
+    parser.add_argument("--require-telemetry", action="store_true")
     args = parser.parse_args()
 
     output = collect_historical_artifacts(
@@ -415,6 +512,7 @@ def main() -> None:
         prometheus_samples_path=args.prometheus_samples_json,
         inference_profile_path=args.inference_profile,
         compose_files=args.compose_file,
+        require_telemetry=args.require_telemetry,
     )
     print(output)
 

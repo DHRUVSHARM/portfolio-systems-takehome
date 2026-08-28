@@ -1,7 +1,8 @@
 profile_name: cloud-gpu-prefix-cache
 purpose: canonical Qwen GPU prefix-cache comparison
 model: Qwen/Qwen3-4B-Instruct-2507
-model_revision: null
+model_revision: required_immutable_huggingface_commit_sha
+model_revision_status: required before canonical measured GPU runs
 served_model_name: Qwen/Qwen3-4B-Instruct-2507
 advisor_base_url: http://vllm:8000/v1
 vllm:

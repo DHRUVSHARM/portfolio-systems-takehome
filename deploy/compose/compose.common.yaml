@@ -234,6 +234,34 @@ services:
       - backend
       - observability
 
+  deployment-tools:
+    profiles:
+      - tools
+    build:
+      context: ../..
+      dockerfile: deploy/docker/deployment-tools.Dockerfile
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN:-}
+      VLLM_MODEL: ${VLLM_MODEL:-Qwen/Qwen3-4B-Instruct-2507}
+      VLLM_MODEL_REVISION: ${VLLM_MODEL_REVISION:-}
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - ../../results/phase8:/results/phase8
+    networks:
+      - backend
+      - observability
+    command:
+      - python
+      - -m
+      - portfolio.portfolio.deployment.context_lengths
+      - --dataset-mode
+      - canonical_100
+      - --model
+      - ${VLLM_MODEL:-Qwen/Qwen3-4B-Instruct-2507}
+      - --output
+      - /results/phase8/context/context_lengths_canonical_100.json
+
 networks:
   frontend:
   backend:

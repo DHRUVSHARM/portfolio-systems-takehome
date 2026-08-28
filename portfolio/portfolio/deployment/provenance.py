@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 import platform
 import re
@@ -11,6 +10,8 @@ import socket
 import subprocess
 from pathlib import Path
 from typing import Any
+
+from ..analytics.profiles import load_cost_profile
 
 
 SECRET_MARKERS = ("token", "password", "secret", "credential", "api_key", "apikey")
@@ -59,9 +60,14 @@ def build_run_provenance(
     if cost_profile_path:
         profile_path = Path(cost_profile_path)
         if profile_path.exists():
+            profile = load_cost_profile(profile_path)
             provenance["cost_profile"] = {
                 "path": str(profile_path),
                 "sha256": _hash_file(profile_path),
+                "name": profile.name,
+                "version": profile.version,
+                "profile_id": profile.profile_id,
+                "machine_hourly_usd": profile.machine_hourly_usd,
             }
     if extra:
         provenance.update(redact_secrets(extra))
@@ -112,18 +118,22 @@ def _host_profile() -> dict[str, Any]:
         "cpu_count": os.cpu_count(),
     }
     gpu = _nvidia_smi()
-    if gpu:
-        profile["nvidia_smi"] = gpu
+    profile["gpu"] = gpu or {
+        "name": None,
+        "memory_total_mb": None,
+        "driver_version": None,
+        "driver_supported_cuda_version": None,
+        "toolkit_cuda_version": None,
+    }
     return profile
 
 
 def _nvidia_smi() -> dict[str, str] | None:
-    query = "driver_version,cuda_version,name,memory.total"
     try:
         result = subprocess.run(
             [
                 "nvidia-smi",
-                f"--query-gpu={query}",
+                "--query-gpu=name,memory.total,driver_version",
                 "--format=csv,noheader,nounits",
             ],
             check=True,
@@ -135,15 +145,62 @@ def _nvidia_smi() -> dict[str, str] | None:
     line = next((row.strip() for row in result.stdout.splitlines() if row.strip()), "")
     if not line:
         return None
+    gpu = parse_nvidia_smi_gpu_query(line)
+    gpu["driver_supported_cuda_version"] = _driver_cuda_version()
+    gpu["toolkit_cuda_version"] = _toolkit_cuda_version()
+    return gpu
+
+
+def parse_nvidia_smi_gpu_query(line: str) -> dict[str, str | None]:
     parts = [part.strip() for part in line.split(",")]
-    keys = ["driver_version", "cuda_version", "name", "memory_total_mb"]
-    return dict(zip(keys, parts))
+    name = parts[0] if len(parts) > 0 else None
+    memory = parts[1] if len(parts) > 1 else None
+    driver = parts[2] if len(parts) > 2 else None
+    return {
+        "name": name or None,
+        "memory_total_mb": memory or None,
+        "driver_version": driver or None,
+        "driver_supported_cuda_version": None,
+        "toolkit_cuda_version": None,
+    }
+
+
+def parse_driver_cuda_version(nvidia_smi_output: str) -> str | None:
+    match = re.search(r"CUDA Version:\s*([0-9.]+)", nvidia_smi_output)
+    return match.group(1) if match else None
+
+
+def _driver_cuda_version() -> str | None:
+    try:
+        result = subprocess.run(
+            ["nvidia-smi"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return parse_driver_cuda_version(result.stdout)
+
+
+def _toolkit_cuda_version() -> str | None:
+    try:
+        result = subprocess.run(
+            ["nvcc", "--version"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    match = re.search(r"release\s+([0-9.]+)", result.stdout)
+    return match.group(1) if match else None
 
 
 def _is_relevant_env_key(key: str) -> bool:
     return bool(
         re.match(
-            r"^(GATEWAY_|PORTFOLIO_|VLLM_|BENCHMARK_|OTEL_|OBSERVABILITY_|JSON_|POSTGRES_)",
+            r"^(GATEWAY_|PORTFOLIO_|VLLM_|BENCHMARK_|OTEL_|OBSERVABILITY_|JSON_|POSTGRES_|PROVIDER_|MACHINE_HOURLY_USD)",
             key,
         )
     )

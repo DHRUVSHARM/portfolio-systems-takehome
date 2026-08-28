@@ -1,0 +1,16 @@
+name: reference_cpu_demo
+version: "2026-08-28"
+currency: USD
+machine_hourly_usd: 1.00
+cpu_pool_fraction: 0.35
+gpu_pool_fraction: 0.45
+overhead_pool_fraction: 0.20
+cpu_attribution_method: cpu_seconds
+gpu_attribution_method: shared_token_work
+prefill_token_weight: 1.0
+decode_token_weight: 4.0
+notes: >
+  NONCANONICAL SYNTHETIC local CPU integration profile. This is an illustrative
+  $1.00/hour synthetic local CPU integration cost used only to validate cost
+  accounting, reports, and dashboards. It is not an actual hardware or cloud
+  cost and must not be presented as a canonical result.

@@ -31,15 +31,17 @@ def measure_context_lengths(
     sample_size: int | None = None,
     sample_seed: int = 1,
     model: str = DEFAULT_MODEL,
+    revision: str | None = None,
     generation_allowance: int = DEFAULT_GENERATION_ALLOWANCE,
 ) -> dict[str, Any]:
     """Build real Advisor prompts and measure them with the requested tokenizer."""
 
-    tokenizer_result = _load_tokenizer(model)
+    tokenizer_result = _load_tokenizer(model, revision=revision)
     if tokenizer_result["status"] != "ok":
         return {
             "status": "tokenizer_unavailable",
             "model": model,
+            "model_revision": revision,
             "dataset_mode": dataset_mode,
             "sample_size": sample_size,
             "sample_seed": sample_seed,
@@ -69,6 +71,7 @@ def measure_context_lengths(
     return {
         "status": "measured",
         "model": model,
+        "model_revision": revision,
         "dataset_mode": dataset_mode,
         "sample_size": sample_size,
         "sample_seed": sample_seed,
@@ -122,13 +125,17 @@ def _build_prompts(
     return prompts
 
 
-def _load_tokenizer(model: str) -> dict[str, Any]:
+def _load_tokenizer(model: str, revision: str | None = None) -> dict[str, Any]:
     try:
         from transformers import AutoTokenizer
     except ImportError as exc:
         return {"status": "error", "error": f"transformers unavailable: {exc}"}
     try:
-        tokenizer = AutoTokenizer.from_pretrained(model, trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained(
+            model,
+            revision=revision,
+            trust_remote_code=True,
+        )
     except Exception as exc:  # network/auth/cache issues are expected locally sometimes
         return {"status": "error", "error": f"tokenizer load failed: {exc}"}
     return {"status": "ok", "tokenizer": tokenizer}
@@ -142,6 +149,7 @@ def main() -> None:
     parser.add_argument("--sample-size", type=int)
     parser.add_argument("--sample-seed", type=int, default=1)
     parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--revision")
     parser.add_argument(
         "--generation-allowance", type=int, default=DEFAULT_GENERATION_ALLOWANCE
     )
@@ -153,6 +161,7 @@ def main() -> None:
         sample_size=args.sample_size,
         sample_seed=args.sample_seed,
         model=args.model,
+        revision=args.revision,
         generation_allowance=args.generation_allowance,
     )
     text = json.dumps(result, indent=2, sort_keys=True)

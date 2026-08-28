@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 import httpx
@@ -33,11 +34,54 @@ DEFAULT_VLLM_QUERIES = {
     "vllm:num_requests_running": "vllm:num_requests_running",
     "vllm:num_requests_waiting": "vllm:num_requests_waiting",
     "vllm:gpu_cache_usage_perc": "vllm:gpu_cache_usage_perc",
-    "vllm:e2e_request_latency_seconds": "vllm:e2e_request_latency_seconds",
-    "vllm:time_to_first_token_seconds": "vllm:time_to_first_token_seconds",
-    "vllm:time_per_output_token_seconds": "vllm:time_per_output_token_seconds",
-    "vllm:request_prompt_tokens": "vllm:request_prompt_tokens",
-    "vllm:request_generation_tokens": "vllm:request_generation_tokens",
+    "vllm:num_preemptions_total": "increase(vllm:num_preemptions_total[1m])",
+    "vllm:prompt_tokens_total": "rate(vllm:prompt_tokens_total[1m])",
+    "vllm:generation_tokens_total": "rate(vllm:generation_tokens_total[1m])",
+    "vllm:prefix_cache_hits_total": "rate(vllm:prefix_cache_hits_total[1m])",
+    "vllm:prefix_cache_queries_total": "rate(vllm:prefix_cache_queries_total[1m])",
+    "vllm:e2e_p50": (
+        "histogram_quantile(0.50, sum(rate(vllm:e2e_request_latency_seconds_bucket[1m])) by (le))"
+    ),
+    "vllm:e2e_p95": (
+        "histogram_quantile(0.95, sum(rate(vllm:e2e_request_latency_seconds_bucket[1m])) by (le))"
+    ),
+    "vllm:ttft_p50": (
+        "histogram_quantile(0.50, sum(rate(vllm:time_to_first_token_seconds_bucket[1m])) by (le))"
+    ),
+    "vllm:ttft_p95": (
+        "histogram_quantile(0.95, sum(rate(vllm:time_to_first_token_seconds_bucket[1m])) by (le))"
+    ),
+    "vllm:tpot_p50": (
+        "histogram_quantile(0.50, sum(rate(vllm:time_per_output_token_seconds_bucket[1m])) by (le))"
+    ),
+    "vllm:tpot_p95": (
+        "histogram_quantile(0.95, sum(rate(vllm:time_per_output_token_seconds_bucket[1m])) by (le))"
+    ),
+    "vllm:queue_p95": (
+        "histogram_quantile(0.95, sum(rate(vllm:request_queue_time_seconds_bucket[1m])) by (le))"
+    ),
+    "vllm:prefill_p95": (
+        "histogram_quantile(0.95, sum(rate(vllm:request_prefill_time_seconds_bucket[1m])) by (le))"
+    ),
+    "vllm:decode_p95": (
+        "histogram_quantile(0.95, sum(rate(vllm:request_decode_time_seconds_bucket[1m])) by (le))"
+    ),
+}
+VLLM_EXPECTED_METRICS = {
+    "vllm:num_requests_running": ("vllm:num_requests_running",),
+    "vllm:num_requests_waiting": ("vllm:num_requests_waiting",),
+    "vllm:gpu_cache_usage_perc": ("vllm:gpu_cache_usage_perc",),
+    "vllm:num_preemptions_total": ("vllm:num_preemptions_total",),
+    "vllm:prompt_tokens_total": ("vllm:prompt_tokens_total", "vllm:prompt_tokens"),
+    "vllm:generation_tokens_total": ("vllm:generation_tokens_total", "vllm:generation_tokens"),
+    "vllm:prefix_cache_hits_total": ("vllm:prefix_cache_hits_total",),
+    "vllm:prefix_cache_queries_total": ("vllm:prefix_cache_queries_total",),
+    "vllm:e2e_request_latency_seconds_bucket": ("vllm:e2e_request_latency_seconds_bucket",),
+    "vllm:time_to_first_token_seconds_bucket": ("vllm:time_to_first_token_seconds_bucket",),
+    "vllm:time_per_output_token_seconds_bucket": ("vllm:time_per_output_token_seconds_bucket",),
+    "vllm:request_queue_time_seconds_bucket": ("vllm:request_queue_time_seconds_bucket",),
+    "vllm:request_prefill_time_seconds_bucket": ("vllm:request_prefill_time_seconds_bucket",),
+    "vllm:request_decode_time_seconds_bucket": ("vllm:request_decode_time_seconds_bucket",),
 }
 
 
@@ -109,14 +153,72 @@ def export_prometheus_range(
             response.raise_for_status()
             payload = response.json()
             if payload.get("status") == "success":
-                for row in payload.get("data", {}).get("result", []):
+                query_rows = payload.get("data", {}).get("result", [])
+                if not query_rows:
+                    results.append(
+                        {
+                            "metric": {
+                                "name": name,
+                                "query": query,
+                                "availability": "unavailable",
+                            },
+                            "values": [],
+                        }
+                    )
+                    continue
+                for row in query_rows:
                     row.setdefault("metric", {})["name"] = name
+                    row.setdefault("metric", {})["query"] = query
+                    row.setdefault("metric", {})["availability"] = "available"
                     results.append(row)
 
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     _write_json(output, {"data": {"result": results}})
     return output
+
+
+def inspect_vllm_metrics_text(text: str) -> dict[str, dict[str, str | None]]:
+    available = _metric_names(text)
+    report: dict[str, dict[str, str | None]] = {}
+    for expected, aliases in VLLM_EXPECTED_METRICS.items():
+        matched = next((name for name in aliases if name in available), None)
+        report[expected] = {
+            "status": "available" if matched == expected else "alternate" if matched else "unavailable",
+            "matched_name": matched,
+        }
+    return report
+
+
+def preflight_vllm_metrics(
+    *,
+    vllm_base_url: str = "http://localhost:8000",
+    output_path: Path | str | None = None,
+) -> dict[str, Any]:
+    with httpx.Client(base_url=vllm_base_url.rstrip("/"), timeout=15.0) as client:
+        response = client.get("/metrics")
+        response.raise_for_status()
+    report = {
+        "vllm_base_url": vllm_base_url,
+        "metrics": inspect_vllm_metrics_text(response.text),
+    }
+    if output_path:
+        output = Path(output_path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        _write_json(output, report)
+    return report
+
+
+def _metric_names(text: str) -> set[str]:
+    names: set[str] = set()
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = re.match(r"^([a-zA-Z_:][a-zA-Z0-9_:]*)", line)
+        if match:
+            names.add(match.group(1))
+    return names
 
 
 def _iso_to_epoch_micros(value: str) -> int:
@@ -136,14 +238,33 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Export post-run Jaeger and Prometheus telemetry JSON"
     )
-    parser.add_argument("--run-json", required=True, type=Path)
-    parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--jaeger-base-url", default="http://localhost:16686")
-    parser.add_argument("--prometheus-base-url", default="http://localhost:9090")
-    parser.add_argument("--prometheus-step", default="15s")
-    parser.add_argument("--include-gpu", action="store_true")
-    parser.add_argument("--include-vllm", action="store_true")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    preflight = subparsers.add_parser("vllm-preflight")
+    preflight.add_argument("--vllm-base-url", default="http://localhost:8000")
+    preflight.add_argument("--output", type=Path)
+
+    export = subparsers.add_parser("export-run")
+    export.add_argument("--run-json", required=True, type=Path)
+    export.add_argument("--output-dir", required=True, type=Path)
+    export.add_argument("--jaeger-base-url", default="http://localhost:16686")
+    export.add_argument("--prometheus-base-url", default="http://localhost:9090")
+    export.add_argument("--prometheus-step", default="15s")
+    export.add_argument("--include-gpu", action="store_true")
+    export.add_argument("--include-vllm", action="store_true")
     args = parser.parse_args()
+
+    if args.command == "vllm-preflight":
+        print(
+            json.dumps(
+                preflight_vllm_metrics(
+                    vllm_base_url=args.vllm_base_url,
+                    output_path=args.output,
+                ),
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return
 
     run = json.loads(args.run_json.read_text())
     run_id = str(run["run_id"])

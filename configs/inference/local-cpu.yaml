@@ -2,6 +2,7 @@ profile_name: local-cpu
 purpose: local smoke validation, not canonical GPU benchmarking
 model: Qwen/Qwen3-4B-Instruct-2507
 model_revision: null
+model_revision_status: optional for noncanonical local CPU smoke
 served_model_name: Qwen/Qwen3-4B-Instruct-2507
 advisor_base_url: http://vllm:8000/v1
 vllm:
