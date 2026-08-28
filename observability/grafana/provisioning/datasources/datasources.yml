@@ -25,7 +25,7 @@ datasources:
     database: portfolio_analytics
     user: ${POSTGRES_USER}
     jsonData:
-      postgresVersion: 1500
+      postgresVersion: 1600
       sslmode: disable
     secureJsonData:
       password: ${POSTGRES_PASSWORD}

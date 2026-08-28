@@ -1,0 +1,252 @@
+name: ${COMPOSE_PROJECT_NAME:-portfolio-systems}
+
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/app.Dockerfile
+    command: uvicorn services.gateway.app:app --host 0.0.0.0 --port 8000
+    environment:
+      GATEWAY_PORTFOLIO_BASE_URL: http://portfolio-api:8000
+      GATEWAY_MAX_IN_FLIGHT: ${GATEWAY_MAX_IN_FLIGHT:-64}
+      GATEWAY_QUEUE_CAPACITY: ${GATEWAY_QUEUE_CAPACITY:-256}
+      GATEWAY_QUEUE_TIMEOUT_SECONDS: ${GATEWAY_QUEUE_TIMEOUT_SECONDS:-2.0}
+      GATEWAY_DOWNSTREAM_TIMEOUT_SECONDS: ${GATEWAY_DOWNSTREAM_TIMEOUT_SECONDS:-60.0}
+      OBSERVABILITY_ENVIRONMENT: ${OBSERVABILITY_ENVIRONMENT:-local}
+      OTEL_TRACES_ENABLED: ${OTEL_TRACES_ENABLED:-true}
+      OTEL_TRACES_SAMPLER_ARG: ${OTEL_TRACES_SAMPLER_ARG:-1.0}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}
+      JSON_LOGGING_ENABLED: ${JSON_LOGGING_ENABLED:-true}
+    ports:
+      - "${GATEWAY_PORT:-8000}:8000"
+    depends_on:
+      portfolio-api:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+      - observability
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/ready >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  portfolio-api:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/app.Dockerfile
+    command: uvicorn services.portfolio_api.app:app --host 0.0.0.0 --port 8000
+    environment:
+      PORTFOLIO_USE_YFINANCE: "false"
+      PORTFOLIO_CPU_WORKERS: ${PORTFOLIO_CPU_WORKERS:-8}
+      PORTFOLIO_MAX_CONCURRENT_METRIC_TASKS: ${PORTFOLIO_MAX_CONCURRENT_METRIC_TASKS:-8}
+      PORTFOLIO_INFERENCE_BASE_URL: http://vllm:8000/v1
+      PORTFOLIO_INFERENCE_MODEL: ${PORTFOLIO_INFERENCE_MODEL:-Qwen/Qwen3-4B-Instruct-2507}
+      PORTFOLIO_INFERENCE_MAX_TOKENS: ${PORTFOLIO_INFERENCE_MAX_TOKENS:-256}
+      PORTFOLIO_INFERENCE_TEMPERATURE: ${PORTFOLIO_INFERENCE_TEMPERATURE:-0}
+      PORTFOLIO_INFERENCE_TIMEOUT_SECONDS: ${PORTFOLIO_INFERENCE_TIMEOUT_SECONDS:-60}
+      PORTFOLIO_INFERENCE_RETRY_COUNT: ${PORTFOLIO_INFERENCE_RETRY_COUNT:-0}
+      PORTFOLIO_INFERENCE_API_KEY: ${PORTFOLIO_INFERENCE_API_KEY:-}
+      OBSERVABILITY_ENVIRONMENT: ${OBSERVABILITY_ENVIRONMENT:-local}
+      OTEL_TRACES_ENABLED: ${OTEL_TRACES_ENABLED:-true}
+      OTEL_TRACES_SAMPLER_ARG: ${OTEL_TRACES_SAMPLER_ARG:-1.0}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}
+      JSON_LOGGING_ENABLED: ${JSON_LOGGING_ENABLED:-true}
+    depends_on:
+      otel-collector:
+        condition: service_started
+    networks:
+      - backend
+      - observability
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/ready >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  postgres:
+    image: postgres:16.4-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio_analytics}
+      POSTGRES_USER: ${POSTGRES_USER:-portfolio}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-replace-with-local-secret}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../../portfolio/portfolio/analytics/schema.sql:/docker-entrypoint-initdb.d/001-analytics-schema.sql:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ../../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../observability/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      alertmanager:
+        condition: service_started
+    networks:
+      - observability
+
+  grafana:
+    image: grafana/grafana:11.1.4
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio_analytics}
+      POSTGRES_USER: ${POSTGRES_USER:-portfolio}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-replace-with-local-secret}
+    volumes:
+      - ../../observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../../observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+      - observability
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ../../observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    networks:
+      - observability
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.107.0
+    command: ["--config=/etc/otelcol-contrib/collector.yaml"]
+    volumes:
+      - ../../observability/otel/collector.yaml:/etc/otelcol-contrib/collector.yaml:ro
+    depends_on:
+      jaeger:
+        condition: service_started
+    networks:
+      - observability
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "127.0.0.1:${JAEGER_UI_PORT:-16686}:16686"
+    networks:
+      - observability
+
+  loki:
+    image: grafana/loki:3.1.1
+    command: ["-config.file=/etc/loki/loki.yaml"]
+    volumes:
+      - ../../observability/loki/loki.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+    networks:
+      - observability
+
+  alloy:
+    image: grafana/alloy:v1.3.1
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
+    volumes:
+      - ../../observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      loki:
+        condition: service_started
+    networks:
+      - observability
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    command:
+      - --path.rootfs=/host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - observability
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    networks:
+      - observability
+
+  benchmark-runner:
+    profiles:
+      - benchmark
+    build:
+      context: ../..
+      dockerfile: deploy/docker/app.Dockerfile
+    command:
+      - python
+      - -m
+      - portfolio.portfolio.benchmark
+      - --gateway-base-url
+      - http://gateway:8000
+      - --dataset-mode
+      - ${BENCHMARK_DATASET_MODE:-canonical_100}
+      - --concurrency
+      - ${BENCHMARK_CONCURRENCY:-1}
+      - --request-timeout-seconds
+      - ${BENCHMARK_REQUEST_TIMEOUT_SECONDS:-120}
+      - --output-root
+      - /results
+    volumes:
+      - benchmark-results:/results
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+      - observability
+
+networks:
+  frontend:
+  backend:
+    internal: true
+  observability:
+    internal: true
+
+volumes:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+  alertmanager-data:
+  hf-cache:
+  vllm-cache:
+  benchmark-results:

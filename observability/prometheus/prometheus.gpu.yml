@@ -49,3 +49,11 @@ scrape_configs:
           - cadvisor:8080
         labels:
           service: cadvisor
+
+  - job_name: dcgm-exporter
+    static_configs:
+      - targets:
+          - dcgm-exporter:9400
+        labels:
+          service: dcgm-exporter
+          profile: gpu
