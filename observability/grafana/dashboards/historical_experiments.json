@@ -1,118 +1,161 @@
 {
-  "annotations": {
-    "list": []
-  },
+  "annotations": {"list": []},
   "editable": true,
   "title": "Portfolio Historical Analytics",
   "uid": "portfolio-historical-analytics",
   "schemaVersion": 39,
-  "version": 2,
-  "tags": [
-    "portfolio",
-    "historical",
-    "benchmark"
-  ],
+  "version": 3,
+  "tags": ["portfolio", "historical", "benchmark"],
   "refresh": "30s",
-  "time": {
-    "from": "now-30d",
-    "to": "now"
-  },
+  "time": {"from": "now-30d", "to": "now"},
   "templating": {
-    "list": []
+    "list": [
+      {
+        "name": "run_id",
+        "type": "query",
+        "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+        "query": "SELECT run_id FROM experiment_runs ORDER BY started_at DESC LIMIT 100",
+        "refresh": 1,
+        "sort": 1,
+        "current": {}
+      },
+      {
+        "name": "profile_id",
+        "type": "query",
+        "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+        "query": "SELECT DISTINCT profile_id FROM cost_analyses WHERE run_id = '$run_id' ORDER BY profile_id",
+        "refresh": 1,
+        "sort": 1,
+        "current": {}
+      },
+      {
+        "name": "request_id",
+        "type": "query",
+        "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+        "query": "SELECT request_id FROM requests WHERE run_id = '$run_id' ORDER BY client_latency_ms DESC LIMIT 100",
+        "refresh": 1,
+        "sort": 1,
+        "current": {}
+      }
+    ]
   },
   "panels": [
     {
       "id": 1,
-      "type": "table",
-      "title": "Experiment Comparison",
-      "description": "Completed benchmark runs and cost profiles. Use this table to compare concurrency, model-serving configuration, run duration, and infrastructure cost.",
-      "datasource": {
-        "type": "postgres",
-        "uid": "postgres-historical-analytics"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 24,
-        "h": 10
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "format": "table",
-          "rawSql": "SELECT\n    run_id AS \"Run ID\",\n    profile_id AS \"Cost Profile\",\n    profile_name AS \"Profile Name\",\n    profile_version AS \"Profile Version\",\n    dataset_mode AS \"Dataset\",\n    selected_query_count AS \"Queries\",\n    benchmark_concurrency AS \"Concurrency\",\n    model AS \"Model\",\n    max_num_seqs AS \"Max vLLM Sequences\",\n    total_run_cost_usd AS \"Total Cost (USD)\",\n    request_cost_sum_usd AS \"Request Cost Sum (USD)\",\n    duration_seconds AS \"Duration (s)\"\nFROM experiment_cost_comparison\nORDER BY run_id DESC, profile_id;"
-        }
-      ]
+      "type": "stat",
+      "title": "Total Cost",
+      "description": "Total infrastructure cost for the selected run/cost profile.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 0, "y": 0, "w": 4, "h": 4},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT total_run_cost_usd AS \"Total Cost (USD)\" FROM cost_analyses WHERE run_id = '$run_id' AND profile_id = '$profile_id';"}]
     },
     {
       "id": 2,
-      "type": "table",
-      "title": "Agent Cost Breakdown",
-      "description": "Per-agent execution work, latency, failures, attributed infrastructure cost, and percentage of total run cost.",
-      "datasource": {
-        "type": "postgres",
-        "uid": "postgres-historical-analytics"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 10,
-        "w": 24,
-        "h": 12
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "format": "table",
-          "rawSql": "SELECT\n    run_id AS \"Run ID\",\n    profile_id AS \"Cost Profile\",\n    agent AS \"Agent\",\n    calls AS \"Calls\",\n    cpu_seconds AS \"CPU Time (s)\",\n    wall_time_ms AS \"Wall Time (ms)\",\n    p95_latency_ms AS \"p95 Latency (ms)\",\n    attributed_cost_usd AS \"Attributed Cost (USD)\",\n    cost_percentage AS \"Cost Share (%)\",\n    failures AS \"Failures\"\nFROM agent_cost_breakdown\nORDER BY run_id DESC, profile_id, agent;"
-        }
-      ]
+      "type": "stat",
+      "title": "Query Count",
+      "description": "Attempted benchmark requests, including failures.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 4, "y": 0, "w": 4, "h": 4},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT COUNT(*) AS \"Queries\" FROM requests WHERE run_id = '$run_id';"}]
     },
     {
       "id": 3,
+      "type": "stat",
+      "title": "Success Rate",
+      "description": "Successful requests divided by all attempted requests.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 8, "y": 0, "w": 4, "h": 4},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT CASE WHEN COUNT(*) = 0 THEN NULL ELSE 100.0 * SUM(CASE WHEN success THEN 1 ELSE 0 END) / COUNT(*) END AS \"Success Rate (%)\" FROM requests WHERE run_id = '$run_id';"}]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Mean Cost / Query",
+      "description": "Average attributed request cost for the selected profile.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT AVG(total_cost_usd) AS \"Mean Cost / Query (USD)\" FROM request_cost_attributions WHERE run_id = '$run_id' AND profile_id = '$profile_id';"}]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "p95 Cost / Query",
+      "description": "95th percentile attributed request cost.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT percentile_cont(0.95) WITHIN GROUP (ORDER BY total_cost_usd) AS \"p95 Cost / Query (USD)\" FROM request_cost_attributions WHERE run_id = '$run_id' AND profile_id = '$profile_id';"}]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Tokens / Dollar",
+      "description": "Total inference tokens divided by selected run cost.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 20, "y": 0, "w": 4, "h": 4},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT CASE WHEN c.total_run_cost_usd = 0 THEN NULL ELSE SUM(COALESCE(i.total_tokens, 0)) / c.total_run_cost_usd END AS \"Tokens / Dollar\" FROM cost_analyses c LEFT JOIN inference_observations i ON i.run_id = c.run_id WHERE c.run_id = '$run_id' AND c.profile_id = '$profile_id' GROUP BY c.total_run_cost_usd;"}]
+    },
+    {
+      "id": 7,
       "type": "table",
-      "title": "Per-Query Workload / Cost",
-      "description": "Request-level workload shape, latency, success state, and attributed cost. This connects query complexity to observed performance and cost.",
-      "datasource": {
-        "type": "postgres",
-        "uid": "postgres-historical-analytics"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 22,
-        "w": 24,
-        "h": 14
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "format": "table",
-          "rawSql": "SELECT\n    r.run_id AS \"Run ID\",\n    c.profile_id AS \"Cost Profile\",\n    r.query_id AS \"Query ID\",\n    r.n_holdings AS \"Holdings\",\n    r.lookback_days AS \"Lookback (days)\",\n    r.phrasing AS \"Phrasing\",\n    r.client_latency_ms AS \"Client Latency (ms)\",\n    c.total_cost_usd AS \"Query Cost (USD)\",\n    c.success AS \"Success\"\nFROM requests r\nJOIN request_cost_attributions c\n  ON c.run_id = r.run_id\n AND c.request_id = r.request_id\nORDER BY r.run_id DESC, c.profile_id, r.query_id;"
-        }
-      ]
+      "title": "Experiment Comparison",
+      "description": "Completed benchmark runs and cost profiles. Compare concurrency, model-serving configuration, run duration, and infrastructure cost.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 8},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT run_id AS \"Run ID\", profile_id AS \"Cost Profile\", dataset_mode AS \"Dataset\", selected_query_count AS \"Queries\", benchmark_concurrency AS \"Concurrency\", model AS \"Model\", max_num_seqs AS \"Max vLLM Sequences\", total_run_cost_usd AS \"Total Cost (USD)\", request_cost_sum_usd AS \"Request Cost Sum (USD)\", duration_seconds AS \"Duration (s)\" FROM experiment_cost_comparison ORDER BY run_id DESC, profile_id;"}]
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Agent Cost Share",
+      "description": "Per-agent execution work, latency, failures, attributed infrastructure cost, and percentage of total run cost. overhead_unallocated is intentionally visible.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 10},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT agent AS \"Agent\", calls AS \"Calls\", cpu_seconds AS \"CPU Time (s)\", wall_time_ms AS \"Wall Time (ms)\", p95_latency_ms AS \"p95 Latency (ms)\", attributed_cost_usd AS \"Attributed Cost (USD)\", cost_percentage AS \"Cost Share (%)\", failures AS \"Failures\" FROM agent_cost_breakdown WHERE run_id = '$run_id' AND profile_id = '$profile_id' ORDER BY attributed_cost_usd DESC;"}]
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "Cost / Query Distribution",
+      "description": "Request-level cost distribution with latency and workload shape.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 10},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT r.query_id AS \"Query ID\", r.request_id AS \"Request ID\", r.n_holdings AS \"Holdings\", r.phrasing AS \"Type\", r.client_latency_ms AS \"Latency (ms)\", c.total_cost_usd AS \"Cost (USD)\", c.cpu_cost_usd AS \"CPU Cost\", c.gpu_cost_usd AS \"GPU Cost\", c.overhead_cost_usd AS \"Overhead Cost\", c.success AS \"Success\" FROM requests r JOIN request_cost_attributions c ON c.run_id = r.run_id AND c.request_id = r.request_id WHERE r.run_id = '$run_id' AND c.profile_id = '$profile_id' ORDER BY c.total_cost_usd DESC;"}]
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Selected Request Summary",
+      "description": "A single request/query view for drilldown into execution, inference, logs, and cost attribution.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 0, "y": 22, "w": 24, "h": 6},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT r.run_id AS \"Run ID\", r.query_id AS \"Query ID\", r.request_id AS \"Request ID\", r.n_holdings AS \"Holdings\", r.lookback_days AS \"Lookback\", r.phrasing AS \"Type\", r.client_latency_ms AS \"Client Latency (ms)\", r.gateway_queue_wait_ms AS \"Gateway Queue Wait (ms)\", r.http_status AS \"HTTP Status\", r.success AS \"Success\", r.error_type AS \"Error Type\", c.total_cost_usd AS \"Cost (USD)\" FROM requests r LEFT JOIN request_cost_attributions c ON c.run_id = r.run_id AND c.request_id = r.request_id AND c.profile_id = '$profile_id' WHERE r.run_id = '$run_id' AND r.request_id = '$request_id';"}]
+    },
+    {
+      "id": 11,
+      "type": "table",
+      "title": "Execution Observations",
+      "description": "Historical request -> stage -> agent -> tool/ticker observations from exported traces.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 0, "y": 28, "w": 14, "h": 12},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT observation_id AS \"Observation\", parent_observation_id AS \"Parent\", stage AS \"Stage\", agent AS \"Agent\", tool AS \"Tool\", ticker AS \"Ticker\", started_at AS \"Start\", finished_at AS \"Finish\", wall_time_ms AS \"Wall Time (ms)\", cpu_time_ms AS \"CPU Time (ms)\", status AS \"Status\", error_type AS \"Error Type\", raw->'span'->>'traceID' AS \"Trace ID\", raw->'span'->>'spanID' AS \"Span ID\" FROM execution_observations WHERE run_id = '$run_id' AND request_id = '$request_id' ORDER BY started_at, finished_at;"}]
+    },
+    {
+      "id": 12,
+      "type": "table",
+      "title": "Inference Observations",
+      "description": "Exact inference rows. Aggregate vLLM metrics remain run-level telemetry and are not assigned to individual requests.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 14, "y": 28, "w": 10, "h": 12},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT model AS \"Model\", elapsed_ms AS \"Elapsed (ms)\", prompt_tokens AS \"Prompt Tokens\", completion_tokens AS \"Completion Tokens\", total_tokens AS \"Total Tokens\", ttft_ms AS \"TTFT (ms)\", queue_ms AS \"Queue (ms)\", prefill_ms AS \"Prefill (ms)\", decode_ms AS \"Decode (ms)\", status AS \"Status\", attempt_count AS \"Attempts\", retry_count AS \"Retries\", raw->>'trace_id' AS \"Trace ID\", raw->>'span_id' AS \"Span ID\" FROM inference_observations WHERE run_id = '$run_id' AND request_id = '$request_id' ORDER BY started_at;"}]
+    },
+    {
+      "id": 13,
+      "type": "table",
+      "title": "Run-Level Serving Telemetry",
+      "description": "Prometheus resource and vLLM samples retained as aggregate run-level telemetry.",
+      "datasource": {"type": "postgres", "uid": "postgres-historical-analytics"},
+      "gridPos": {"x": 0, "y": 40, "w": 24, "h": 10},
+      "targets": [{"refId": "A", "format": "table", "rawSql": "SELECT resource_type AS \"Resource\", resource_id AS \"Series\", raw->'metric'->>'name' AS \"Metric\", MIN(timestamp) AS \"First Sample\", MAX(timestamp) AS \"Last Sample\", AVG(COALESCE(cpu_utilization, gpu_utilization, gpu_power_watts, gpu_temperature_c, (raw->>'value')::double precision)) AS \"Mean Value\", MAX(COALESCE(memory_bytes::double precision, gpu_memory_used_bytes::double precision, gpu_energy_joules, (raw->>'value')::double precision)) AS \"Max Value\" FROM resource_samples WHERE run_id = '$run_id' GROUP BY resource_type, resource_id, raw->'metric'->>'name' ORDER BY resource_type, \"Metric\";"}]
     }
   ]
 }

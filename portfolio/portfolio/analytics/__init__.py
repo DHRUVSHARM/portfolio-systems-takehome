@@ -15,6 +15,7 @@ from .models import (
 )
 from .registry import MetricCalculator, MetricContext, default_metric_registry
 from .profiles import load_cost_profile
+from .serving import summarize_serving_telemetry
 
 __all__ = [
     "AgentCost",
@@ -32,4 +33,5 @@ __all__ = [
     "ResourceSample",
     "default_metric_registry",
     "load_cost_profile",
+    "summarize_serving_telemetry",
 ]

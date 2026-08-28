@@ -57,6 +57,10 @@ class Phase8DeploymentTests(unittest.TestCase):
         self.assertIn("/v1/models", gpu)
         self.assertIn("fake_portfolio", stress)
         self.assertIn("deployment-tools", common)
+        self.assertIn("PORTFOLIO_INFERENCE_ENABLE_THINKING", cpu)
+        self.assertIn(":-false", cpu)
+        self.assertNotIn("PORTFOLIO_INFERENCE_ENABLE_THINKING", common)
+        self.assertNotIn("PORTFOLIO_INFERENCE_ENABLE_THINKING", gpu)
 
     def test_prometheus_cpu_and_gpu_target_split(self):
         cpu_config = (ROOT / "observability" / "prometheus" / "prometheus.yml").read_text()

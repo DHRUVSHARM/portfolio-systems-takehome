@@ -8,7 +8,11 @@
 
 import math
 
-from ..observability import portfolio_metrics, start_as_current_span
+from ..observability import (
+    correlation_attributes,
+    portfolio_metrics,
+    start_as_current_span,
+)
 from .price_agent import PriceAgent
 
 TRADING_DAYS = 252
@@ -24,6 +28,7 @@ class MetricsAgent(object):
         with start_as_current_span(
             f"MetricsAgent[{ticker}]",
             {
+                **correlation_attributes(),
                 "agent": "MetricsAgent",
                 "stage": "metrics",
                 "ticker": ticker,
@@ -33,8 +38,10 @@ class MetricsAgent(object):
             with start_as_current_span(
                 f"PriceAgent.get_history[{ticker}]",
                 {
+                    **correlation_attributes(),
                     "agent": "PriceAgent",
                     "tool": "get_history",
+                    "stage": "metrics",
                     "ticker": ticker,
                     "lookback_days": lookback_days,
                 },

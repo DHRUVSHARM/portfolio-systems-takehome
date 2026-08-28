@@ -34,6 +34,8 @@ def write_parquet_run_artifacts(
             "metrics": "metrics.json",
             "summary": "summary.csv",
             "charts": "charts/",
+            "serving_telemetry": "serving_telemetry.json",
+            "visual_report": "report/index.html",
         },
     }
     _write_json(run_dir / "run.json", run_json)

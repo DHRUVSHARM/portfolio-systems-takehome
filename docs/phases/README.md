@@ -6,13 +6,14 @@ This directory is the execution plan for the rest of the take-home. Read `docs/a
 
 - [x] Workload restoration
 - [x] Phase 1: serving-safe PortfolioRuntime
-- [ ] Phase 2: async vLLM Advisor
-- [ ] Phase 3: internal Portfolio API
-- [ ] Phase 4: public Gateway and admission control
-- [ ] Phase 5: benchmark/load generator
-- [ ] Phase 6: deep observability
-- [ ] Phase 7: historical analytics and cost accounting
-- [ ] Phase 8: Docker Compose deployment and final experiments
+- [x] Phase 2: async vLLM Advisor
+- [x] Phase 3: internal Portfolio API
+- [x] Phase 4: public Gateway and admission control
+- [x] Phase 5: benchmark/load generator
+- [x] Phase 6: deep observability
+- [x] Phase 7: historical analytics and cost accounting
+- [x] Phase 8: Docker Compose deployment and experiment infrastructure
+- [x] Phase 9: observability, analytics, visualization, and demo experience
 
 ## Review checkpoints
 

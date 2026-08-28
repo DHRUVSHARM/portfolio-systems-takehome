@@ -127,6 +127,7 @@ class Phase2InferenceTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(payload["temperature"], 0.0)
             self.assertEqual(payload["max_tokens"], 256)
             self.assertFalse(payload["stream"])
+            self.assertNotIn("chat_template_kwargs", payload)
             return completion_response()
 
         self.client = OpenAICompatibleInferenceClient(
@@ -137,6 +138,32 @@ class Phase2InferenceTests(unittest.IsolatedAsyncioTestCase):
         await self.client.chat_completion("prompt")
 
         self.assertEqual(len(seen), 1)
+
+    async def test_openai_compatible_request_adds_thinking_override_only_when_configured(self):
+        for value in (True, False):
+            with self.subTest(enable_thinking=value):
+                seen = []
+
+                async def handler(request):
+                    seen.append(json.loads(request.content))
+                    return completion_response()
+
+                client = OpenAICompatibleInferenceClient(
+                    InferenceClientConfig(
+                        base_url="http://vllm:8000/v1",
+                        enable_thinking=value,
+                    ),
+                    transport=httpx.MockTransport(handler),
+                )
+                try:
+                    await client.chat_completion("prompt")
+                finally:
+                    await client.aclose()
+
+                self.assertEqual(
+                    seen[0]["chat_template_kwargs"],
+                    {"enable_thinking": value},
+                )
 
     async def test_response_extraction_and_usage_capture(self):
         self.client = OpenAICompatibleInferenceClient(

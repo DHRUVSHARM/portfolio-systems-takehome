@@ -126,6 +126,7 @@ def _env_float(name: str, *, default: float) -> float:
     except ValueError as exc:
         raise ValueError(f"{name} must be a number") from exc
 
+
 def _env_optional_bool(name: str) -> bool | None:
     value = os.getenv(name)
     if value is None or not value.strip():

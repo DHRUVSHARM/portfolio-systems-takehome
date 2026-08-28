@@ -12,6 +12,7 @@ from ..analytics.calculators.cost import calculate_costs
 from ..analytics.exporters.parquet import write_parquet_run_artifacts
 from ..analytics.exporters.postgres import PostgresAnalyticsRepository
 from ..analytics.exporters.report import build_run_report
+from ..analytics.exporters.visual_report import generate_visual_report
 from ..analytics.models import (
     AnalyticsDataset,
     ExecutionObservation,
@@ -137,6 +138,7 @@ def collect_historical_artifacts(
     )
     _write_json(output_path / "provenance.json", provenance)
     _write_json(output_path / "report.json", build_run_report(dataset, analysis))
+    generate_visual_report(output_path)
 
     if postgres_dsn:
         _persist_to_postgres(

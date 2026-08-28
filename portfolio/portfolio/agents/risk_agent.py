@@ -18,7 +18,11 @@
 
 import math
 
-from ..observability import portfolio_metrics, start_as_current_span
+from ..observability import (
+    correlation_attributes,
+    portfolio_metrics,
+    start_as_current_span,
+)
 
 TRADING_DAYS = 252
 
@@ -32,6 +36,7 @@ class RiskAgent(object):
         with start_as_current_span(
             "RiskAgent.assess",
             {
+                **correlation_attributes(),
                 "agent": "RiskAgent",
                 "stage": "risk",
                 "n_holdings": len(holdings),

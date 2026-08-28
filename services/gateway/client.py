@@ -64,6 +64,9 @@ class PortfolioApiClient:
                     "stage": "portfolio",
                     "n_holdings": len(payload.get("holdings", {})),
                     "lookback_days": payload.get("lookback_days"),
+                    "run_id": headers.get("X-Run-ID"),
+                    "request_id": headers.get("X-Request-ID"),
+                    "query_id": headers.get("X-Query-ID"),
                 },
             ):
                 response = await self._client.post(

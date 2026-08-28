@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
+import os
 import unittest
+from unittest.mock import patch
 
 import httpx
 
@@ -219,6 +221,55 @@ class Phase3PortfolioApiTests(unittest.IsolatedAsyncioTestCase):
         )
         try:
             self.assertFalse(runtime.metrics_agent.price.use_yfinance)
+        finally:
+            await runtime.close()
+
+    async def test_optional_inference_enable_thinking_parses_from_environment(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertIsNone(
+                PortfolioApiConfig.from_env().inference_enable_thinking
+            )
+
+        for raw, expected in (
+            ("", None),
+            ("   ", None),
+            ("true", True),
+            ("1", True),
+            ("yes", True),
+            ("on", True),
+            ("false", False),
+            ("0", False),
+            ("no", False),
+            ("off", False),
+        ):
+            with self.subTest(raw=raw), patch.dict(
+                os.environ,
+                {"PORTFOLIO_INFERENCE_ENABLE_THINKING": raw},
+                clear=True,
+            ):
+                self.assertIs(
+                    PortfolioApiConfig.from_env().inference_enable_thinking,
+                    expected,
+                )
+
+        with patch.dict(
+            os.environ,
+            {"PORTFOLIO_INFERENCE_ENABLE_THINKING": "maybe"},
+            clear=True,
+        ):
+            with self.assertRaises(ValueError):
+                PortfolioApiConfig.from_env()
+
+    async def test_build_runtime_passes_inference_enable_thinking_to_client_config(self):
+        runtime = build_portfolio_runtime(
+            PortfolioApiConfig(
+                cpu_workers=1,
+                max_concurrent_metric_tasks=1,
+                inference_enable_thinking=False,
+            )
+        )
+        try:
+            self.assertIs(runtime.advisor.client.config.enable_thinking, False)
         finally:
             await runtime.close()
 

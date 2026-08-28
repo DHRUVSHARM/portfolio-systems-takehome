@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+import contextvars
 from functools import partial
 import threading
 from typing import Any
@@ -13,7 +14,13 @@ from opentelemetry import context as otel_context
 
 from ..agents.advisor_agent import AdvisorAgent
 from ..agents.metrics_agent import MetricsAgent
-from ..observability import log_event, portfolio_metrics, start_as_current_span
+from ..observability import (
+    log_event,
+    portfolio_metrics,
+    reset_request_context,
+    set_request_context,
+    start_as_current_span,
+)
 from ..agents.risk_agent import RiskAgent
 from .config import WorkflowRuntimeConfig
 from .context import RequestContext
@@ -53,77 +60,96 @@ class PortfolioRuntime:
 
         context = context or RequestContext()
         tickers = list(holdings.keys())
+        context_token = set_request_context(context)
 
-        with start_as_current_span(
-            "portfolio.workflow",
-            {
-                "stage": "portfolio",
-                "n_holdings": len(tickers),
-                "lookback_days": lookback_days,
-                "run_id": context.run_id,
-                "request_id": context.request_id,
-                "query_id": context.query_id,
-            },
-        ), portfolio_metrics.workflow_timer():
-            log_event(
-                logger_name="portfolio.runtime",
-                event="workflow_started",
-                context=context,
-                stage="portfolio",
-                n_holdings=len(tickers),
-                lookback_days=lookback_days,
-            )
-            metric_tasks = [
-                asyncio.create_task(
-                    self._compute_metric(ticker, lookback_days, context),
-                    name=f"portfolio-metric-{ticker}",
+        try:
+            with start_as_current_span(
+                "portfolio.workflow",
+                {
+                    "stage": "portfolio",
+                    "n_holdings": len(tickers),
+                    "lookback_days": lookback_days,
+                    "run_id": context.run_id,
+                    "request_id": context.request_id,
+                    "query_id": context.query_id,
+                },
+            ), portfolio_metrics.workflow_timer():
+                return await self._analyze_in_context(
+                    holdings=holdings,
+                    lookback_days=lookback_days,
+                    context=context,
+                    tickers=tickers,
                 )
-                for ticker in tickers
-            ]
+        finally:
+            reset_request_context(context_token)
 
-            try:
-                metric_results = await asyncio.gather(*metric_tasks)
-            except BaseException:
-                for task in metric_tasks:
-                    if not task.done():
-                        task.cancel()
-                await asyncio.gather(*metric_tasks, return_exceptions=True)
-                raise
-
-            per_ticker = dict(zip(tickers, metric_results))
-
-            risk = await self._run_cpu(
-                self.risk_agent.assess, holdings=holdings, metrics=per_ticker
+    async def _analyze_in_context(
+        self,
+        *,
+        holdings: dict,
+        lookback_days: int,
+        context: RequestContext,
+        tickers: list[str],
+    ) -> dict[str, Any]:
+        log_event(
+            logger_name="portfolio.runtime",
+            event="workflow_started",
+            context=context,
+            stage="portfolio",
+            n_holdings=len(tickers),
+            lookback_days=lookback_days,
+        )
+        metric_tasks = [
+            asyncio.create_task(
+                self._compute_metric(ticker, lookback_days, context),
+                name=f"portfolio-metric-{ticker}",
             )
+            for ticker in tickers
+        ]
 
-            summary = await self._summarize(
-                holdings=holdings,
-                metrics=per_ticker,
-                risk=risk,
-                context=context,
-            )
+        try:
+            metric_results = await asyncio.gather(*metric_tasks)
+        except BaseException:
+            for task in metric_tasks:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(*metric_tasks, return_exceptions=True)
+            raise
 
-            metrics_view = {
-                ticker: {
-                    key: value for key, value in metrics.items() if key != "returns"
-                }
-                for ticker, metrics in per_ticker.items()
+        per_ticker = dict(zip(tickers, metric_results))
+
+        risk = await self._run_cpu(
+            self.risk_agent.assess, holdings=holdings, metrics=per_ticker
+        )
+
+        summary = await self._summarize(
+            holdings=holdings,
+            metrics=per_ticker,
+            risk=risk,
+            context=context,
+        )
+
+        metrics_view = {
+            ticker: {
+                key: value for key, value in metrics.items() if key != "returns"
             }
-            log_event(
-                logger_name="portfolio.runtime",
-                event="workflow_completed",
-                context=context,
-                stage="portfolio",
-                status="success",
-            )
+            for ticker, metrics in per_ticker.items()
+        }
+        log_event(
+            logger_name="portfolio.runtime",
+            event="workflow_completed",
+            context=context,
+            stage="portfolio",
+            status="success",
+        )
 
-            return {
-                "holdings": holdings,
-                "lookback_days": lookback_days,
-                "metrics": metrics_view,
-                "risk": risk,
-                "summary": summary,
-            }
+        return {
+            "holdings": holdings,
+            "lookback_days": lookback_days,
+            "metrics": metrics_view,
+            "risk": risk,
+            "summary": summary,
+        }
 
     async def close(self) -> None:
         advisor_close = getattr(self.advisor, "aclose", None)
@@ -220,8 +246,9 @@ class PortfolioRuntime:
             self._record_cpu_slots()
             call = partial(func, **kwargs)
             current_context = otel_context.get_current()
+            python_context = contextvars.copy_context()
             future = self._executor.submit(
-                _run_with_otel_context, current_context, call
+                _run_with_contexts, current_context, python_context, call
             )
             future.add_done_callback(lambda _future: release_resources())
             wrapped = asyncio.wrap_future(future)
@@ -320,9 +347,9 @@ class PortfolioRuntime:
         portfolio_metrics.cpu_slots_used.set(max(used, 0))
 
 
-def _run_with_otel_context(parent_context, call):
+def _run_with_contexts(parent_context, python_context, call):
     token = otel_context.attach(parent_context)
     try:
-        return call()
+        return python_context.run(call)
     finally:
         otel_context.detach(token)

@@ -116,8 +116,13 @@ def create_app(
             ) as span:
                 try:
                     with start_as_current_span(
-                    "gateway.validation",
-                    {"stage": "validation", "request_id": request_id},
+                        "gateway.validation",
+                        {
+                            "stage": "validation",
+                            "run_id": x_run_id,
+                            "request_id": request_id,
+                            "query_id": x_query_id,
+                        },
                     ):
                         try:
                             holdings, lookback_days = validate_analyze_request(payload)
@@ -137,7 +142,12 @@ def create_app(
                     try:
                         with start_as_current_span(
                             "gateway.admission_wait",
-                            {"stage": "admission", "request_id": request_id},
+                            {
+                                "stage": "admission",
+                                "run_id": x_run_id,
+                                "request_id": request_id,
+                                "query_id": x_query_id,
+                            },
                         ):
                             lease = await admission.acquire(
                                 queue_timeout_seconds=gateway_config.queue_timeout_seconds
@@ -147,6 +157,15 @@ def create_app(
                         gateway_metrics.admission_rejections_total.labels("capacity").inc()
                         gateway_metrics.queue_wait_duration_seconds.labels("rejected").observe(
                             time.perf_counter() - wait_started
+                        )
+                        log_event(
+                            logger_name="gateway",
+                            event="gateway_admission_rejected",
+                            stage="gateway",
+                            status="rejected",
+                            run_id=x_run_id,
+                            request_id=request_id,
+                            query_id=x_query_id,
                         )
                         raise HTTPException(
                             status_code=503,
@@ -158,6 +177,15 @@ def create_app(
                         gateway_metrics.queue_timeouts_total.inc()
                         gateway_metrics.queue_wait_duration_seconds.labels("timeout").observe(
                             time.perf_counter() - wait_started
+                        )
+                        log_event(
+                            logger_name="gateway",
+                            event="gateway_admission_timeout",
+                            stage="gateway",
+                            status="timeout",
+                            run_id=x_run_id,
+                            request_id=request_id,
+                            query_id=x_query_id,
                         )
                         raise HTTPException(
                             status_code=503,
@@ -199,6 +227,16 @@ def create_app(
                                 gateway_metrics.downstream_failures_total.labels(
                                     "timeout"
                                 ).inc()
+                                log_event(
+                                    logger_name="gateway",
+                                    event="gateway_downstream_timeout",
+                                    stage="gateway",
+                                    status="error",
+                                    run_id=x_run_id,
+                                    request_id=request_id,
+                                    query_id=x_query_id,
+                                    error_type=type(exc).__name__,
+                                )
                                 raise HTTPException(
                                     status_code=504,
                                     detail="portfolio request timed out",
@@ -209,6 +247,16 @@ def create_app(
                                 gateway_metrics.downstream_failures_total.labels(
                                     "connection_failure"
                                 ).inc()
+                                log_event(
+                                    logger_name="gateway",
+                                    event="gateway_downstream_connection_failure",
+                                    stage="gateway",
+                                    status="error",
+                                    run_id=x_run_id,
+                                    request_id=request_id,
+                                    query_id=x_query_id,
+                                    error_type=type(exc).__name__,
+                                )
                                 raise HTTPException(
                                     status_code=502,
                                     detail="portfolio request failed",
