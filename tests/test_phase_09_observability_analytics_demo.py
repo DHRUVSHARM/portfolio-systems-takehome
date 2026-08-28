@@ -21,6 +21,7 @@ from portfolio.portfolio.analytics.exporters import (
     write_parquet_run_artifacts,
 )
 from portfolio.portfolio.analytics.serving import summarize_serving_telemetry
+from portfolio.portfolio.deployment.telemetry_normalization import resource_type, sample_fields
 from portfolio.portfolio.observability import (
     ObservabilityConfig,
     configure_tracing,
@@ -76,7 +77,7 @@ class Phase9ObservabilityAnalyticsDemoTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(spans["RiskAgent.assess"]["run_id"], "run-phase9")
 
-    async def test_visual_report_generation_from_persisted_artifacts(self):
+    def test_visual_report_generation_from_persisted_artifacts(self):
         with TemporaryDirectory() as tempdir:
             output_dir = _write_fixture_run(Path(tempdir))
 
@@ -97,7 +98,7 @@ class Phase9ObservabilityAnalyticsDemoTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("agent_cost_share", manifest)
         self.assertGreater(len(manifest), 10)
 
-    async def test_missing_gpu_telemetry_renders_as_unavailable_not_zero(self):
+    def test_missing_gpu_telemetry_renders_as_unavailable_not_zero(self):
         summary = summarize_serving_telemetry(
             resource_samples=[],
             inference_observations=[
@@ -115,7 +116,97 @@ class Phase9ObservabilityAnalyticsDemoTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(summary["vllm"]["vllm:ttft_p95"]["availability"], "unavailable")
         self.assertEqual(summary["inference"]["total_tokens"], 15)
 
-    async def test_visual_report_serving_telemetry_interprets_prometheus_aggregates(self):
+    def test_dcgm_gpu_telemetry_is_case_insensitive_and_unit_normalized(self):
+        self.assertEqual(resource_type("dcgm_fi_dev_gpu_util", {"job": "DCGM-EXPORTER"}), "gpu")
+        self.assertEqual(sample_fields("DCGM_FI_DEV_GPU_UTIL", 75.0), {"gpu_utilization": 75.0})
+        self.assertEqual(
+            sample_fields("dcgm_fi_dev_fb_used", 512.0),
+            {"gpu_memory_used_bytes": 512 * 1024 * 1024},
+        )
+        self.assertEqual(sample_fields("DCGM_FI_DEV_POWER_USAGE", 123.5), {"gpu_power_watts": 123.5})
+        self.assertEqual(sample_fields("dcgm_fi_dev_gpu_temp", 67.0), {"gpu_temperature_c": 67.0})
+        self.assertEqual(
+            sample_fields("DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION", 2500.0),
+            {"gpu_energy_joules": 2.5},
+        )
+
+        summary = summarize_serving_telemetry(
+            resource_samples=[
+                ResourceSample(
+                    run_id="run-phase9",
+                    timestamp="2026-08-27T00:00:01+00:00",
+                    resource_type="gpu",
+                    resource_id="gpu0",
+                    raw={"metric": {"name": "DCGM_FI_DEV_GPU_UTIL", "availability": "available"}, "value": 75.0},
+                ),
+                ResourceSample(
+                    run_id="run-phase9",
+                    timestamp="2026-08-27T00:00:02+00:00",
+                    resource_type="gpu",
+                    resource_id="gpu0",
+                    raw={"metric": {"name": "dcgm_fi_dev_fb_used", "availability": "available"}, "value": 512.0},
+                ),
+                ResourceSample(
+                    run_id="run-phase9",
+                    timestamp="2026-08-27T00:00:03+00:00",
+                    resource_type="gpu",
+                    resource_id="gpu0",
+                    raw={"metric": {"name": "DCGM_FI_DEV_POWER_USAGE", "availability": "available"}, "value": 123.5},
+                ),
+                ResourceSample(
+                    run_id="run-phase9",
+                    timestamp="2026-08-27T00:00:04+00:00",
+                    resource_type="gpu",
+                    resource_id="gpu0",
+                    raw={"metric": {"name": "DCGM_FI_DEV_GPU_TEMP", "availability": "available"}, "value": 67.0},
+                ),
+                ResourceSample(
+                    run_id="run-phase9",
+                    timestamp="2026-08-27T00:00:05+00:00",
+                    resource_type="gpu",
+                    resource_id="gpu0",
+                    raw={
+                        "metric": {
+                            "name": "DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION",
+                            "availability": "available",
+                        },
+                        "value": 2500.0,
+                    },
+                ),
+            ],
+            inference_observations=[],
+        )
+
+        self.assertEqual(summary["gpu"]["utilization_percent"]["latest"], 75.0)
+        self.assertEqual(summary["gpu"]["memory_used_bytes"]["latest"], 512 * 1024 * 1024)
+        self.assertEqual(summary["gpu"]["power_watts"]["latest"], 123.5)
+        self.assertEqual(summary["gpu"]["temperature_c"]["latest"], 67.0)
+        self.assertEqual(summary["gpu"]["energy_joules"]["latest"], 2.5)
+
+    def test_gpu_telemetry_unavailable_raw_sample_stays_unavailable(self):
+        summary = summarize_serving_telemetry(
+            resource_samples=[
+                ResourceSample(
+                    run_id="run-phase9",
+                    timestamp="2026-08-27T00:00:01+00:00",
+                    resource_type="gpu",
+                    resource_id="gpu0",
+                    raw={
+                        "metric": {
+                            "name": "DCGM_FI_DEV_GPU_UTIL",
+                            "availability": "unavailable",
+                        },
+                        "value": 0.0,
+                    },
+                )
+            ],
+            inference_observations=[],
+        )
+
+        self.assertEqual(summary["gpu"]["utilization_percent"]["availability"], "unavailable")
+        self.assertIsNone(summary["gpu"]["utilization_percent"]["latest"])
+
+    def test_visual_report_serving_telemetry_interprets_prometheus_aggregates(self):
         summary = summarize_serving_telemetry(
             resource_samples=[
                 ResourceSample(
@@ -139,7 +230,7 @@ class Phase9ObservabilityAnalyticsDemoTests(unittest.IsolatedAsyncioTestCase):
         self.assertAlmostEqual(summary["vllm"]["vllm:ttft_p95"]["latest"], 120.0)
         self.assertIn("aggregate run-level", summary["source_note"])
 
-    async def test_grafana_historical_dashboard_parses_and_uses_schema_fields(self):
+    def test_grafana_historical_dashboard_parses_and_uses_schema_fields(self):
         dashboard = json.loads(
             (ROOT / "observability/grafana/dashboards/historical_experiments.json").read_text()
         )
@@ -167,7 +258,67 @@ class Phase9ObservabilityAnalyticsDemoTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("overhead_unallocated", json.dumps(dashboard))
         self.assertIn("raw->>'trace_id'", queries)
 
-    async def test_loki_datasource_links_trace_ids_to_jaeger(self):
+    def test_grafana_historical_dashboard_exposes_required_kpis_and_visuals(self):
+        dashboard = json.loads(
+            (ROOT / "observability/grafana/dashboards/historical_experiments.json").read_text()
+        )
+        panels = dashboard["panels"]
+        by_title = {panel["title"]: panel for panel in panels}
+
+        for title in (
+            "Total Cost",
+            "Query Count",
+            "Run Duration",
+            "Success Rate",
+            "Mean Cost / Query",
+            "p95 Cost / Query",
+            "Queries / Dollar",
+            "Tokens / Dollar",
+        ):
+            self.assertEqual(by_title[title]["type"], "stat")
+
+        self.assertEqual(by_title["Total Cost"]["fieldConfig"]["defaults"]["unit"], "currencyUSD")
+        self.assertEqual(by_title["Run Duration"]["fieldConfig"]["defaults"]["unit"], "s")
+        self.assertEqual(by_title["Success Rate"]["fieldConfig"]["defaults"]["unit"], "percent")
+        self.assertEqual(by_title["Queries / Dollar"]["fieldConfig"]["defaults"]["unit"], "queries/$")
+        self.assertEqual(by_title["Tokens / Dollar"]["fieldConfig"]["defaults"]["unit"], "tokens/$")
+        self.assertEqual(by_title["Agent Cost Share"]["type"], "piechart")
+        self.assertEqual(by_title["Cost / Query Distribution"]["type"], "barchart")
+        self.assertIn("overhead_unallocated", json.dumps(by_title["Agent Cost Share"]))
+
+    def test_visual_report_keeps_all_requests_and_execution_rows(self):
+        with TemporaryDirectory() as tempdir:
+            output_dir = _write_large_fixture_run(Path(tempdir))
+            index = generate_visual_report(output_dir)
+            html = index.read_text()
+            sampled_chart = (output_dir / "report" / "assets" / "cost_vs_tokens.svg").read_text()
+
+        self.assertIn("request-059", html)
+        self.assertIn("exec-029", html)
+        self.assertIn("Showing first 180", sampled_chart)
+        self.assertNotIn("/results/", html)
+        self.assertIn('href="../requests.parquet"', html)
+
+    def test_phase9_architecture_diagrams_cover_identity_and_cost_flows(self):
+        text = (ROOT / "docs/architecture/analytics_data_flow.md").read_text()
+
+        for expected in (
+            "run_id",
+            "request_id",
+            "query_id",
+            "trace/span",
+            "agent/tool observation",
+            "inference observation",
+            "machine hourly rate",
+            "total run cost",
+            "CPU pool",
+            "inference-GPU pool",
+            "overhead_unallocated",
+            "assignment metrics",
+        ):
+            self.assertIn(expected, text)
+
+    def test_loki_datasource_links_trace_ids_to_jaeger(self):
         datasources = (
             ROOT / "observability/grafana/provisioning/datasources/datasources.yml"
         ).read_text()
@@ -237,6 +388,42 @@ def _write_fixture_run(root: Path) -> Path:
                     }
                 },
                 "host": {"cpu": {"logical_count": 8}},
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    return output_dir
+
+
+def _write_large_fixture_run(root: Path) -> Path:
+    dataset = _large_dataset(request_count=200, execution_count=30)
+    profile = CostProfile(
+        name="reference_cpu_demo",
+        version="1",
+        machine_hourly_usd=360.0,
+        cpu_pool_fraction=0.30,
+        gpu_pool_fraction=0.50,
+        overhead_pool_fraction=0.20,
+        notes="NONCANONICAL SYNTHETIC illustrative local CPU cost profile",
+    )
+    analysis = calculate_costs(dataset, profile)
+    output_dir = write_parquet_run_artifacts(
+        output_dir=root / "analytics" / dataset.run.run_id,
+        dataset=dataset,
+        analysis=analysis,
+    )
+    (output_dir / "provenance.json").write_text(
+        json.dumps(
+            {
+                "git_commit": "fixture-sha",
+                "cost_profile": {
+                    "profile_id": profile.profile_id,
+                    "name": profile.name,
+                    "version": profile.version,
+                    "machine_hourly_usd": profile.machine_hourly_usd,
+                    "notes": profile.notes,
+                },
             },
             indent=2,
         )
@@ -407,6 +594,76 @@ def _dataset() -> AnalyticsDataset:
                 },
             ),
         ),
+    )
+
+
+def _large_dataset(*, request_count: int, execution_count: int) -> AnalyticsDataset:
+    requests = []
+    inference = []
+    for index in range(request_count):
+        request_id = f"request-{index:03d}"
+        query_id = f"query-{index:03d}"
+        requests.append(
+            RequestObservation(
+                run_id="run-phase9-large",
+                request_id=request_id,
+                query_id=query_id,
+                n_holdings=1 + index % 5,
+                phrasing="percent" if index % 2 else "equal",
+                lookback_days=90,
+                start_timestamp="2026-08-27T00:00:00+00:00",
+                finish_timestamp="2026-08-27T00:00:20+00:00",
+                client_latency_ms=1000.0 + index,
+                http_status=200,
+                success=True,
+            )
+        )
+        inference.append(
+            InferenceObservationRecord(
+                run_id="run-phase9-large",
+                request_id=request_id,
+                query_id=query_id,
+                model="Qwen/Qwen3-0.6B",
+                started_at="2026-08-27T00:00:01+00:00",
+                finished_at="2026-08-27T00:00:02+00:00",
+                elapsed_ms=1000.0 + index,
+                prompt_tokens=100 + index,
+                completion_tokens=20,
+                total_tokens=120 + index,
+                status=200,
+            )
+        )
+    execution = tuple(
+        ExecutionObservation(
+            observation_id=f"exec-{index:03d}",
+            parent_observation_id="portfolio-large" if index else None,
+            run_id="run-phase9-large",
+            request_id="request-000",
+            query_id="query-000",
+            stage="metrics",
+            agent="MetricsAgent",
+            tool="compute",
+            ticker=f"T{index:03d}",
+            started_at="2026-08-27T00:00:00+00:00",
+            finished_at="2026-08-27T00:00:01+00:00",
+            wall_time_ms=1000.0 + index,
+            cpu_time_ms=10.0,
+        )
+        for index in range(execution_count)
+    )
+    return AnalyticsDataset(
+        run=ExperimentRun(
+            run_id="run-phase9-large",
+            started_at="2026-08-27T00:00:00+00:00",
+            finished_at="2026-08-27T00:00:20+00:00",
+            dataset_mode=f"sampled_{request_count}",
+            selected_query_count=request_count,
+            benchmark_concurrency=8,
+            model="Qwen/Qwen3-0.6B",
+        ),
+        requests=tuple(requests),
+        execution_observations=execution,
+        inference_observations=tuple(inference),
     )
 
 

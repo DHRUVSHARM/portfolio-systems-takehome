@@ -264,7 +264,7 @@ def _request_drilldown_section(
     chart_assets: dict[str, str],
 ) -> str:
     rows = []
-    for request in requests[:50]:
+    for request in requests:
         cost = request_costs.get(request["request_id"], {})
         infer = inference.get(request["request_id"], {})
         rows.append(
@@ -278,13 +278,13 @@ def _request_drilldown_section(
     detail = ""
     if requests:
         selected = requests[0]["request_id"]
-        exec_rows = [row for row in execution if row.get("request_id") == selected][:25]
+        exec_rows = [row for row in execution if row.get("request_id") == selected]
         detail_rows = "".join(
-            f"<tr><td>{escape(str(row.get('stage')))}</td><td>{escape(str(row.get('agent')))}</td><td>{escape(str(row.get('tool') or ''))}</td><td>{escape(str(row.get('ticker') or ''))}</td><td>{_fmt_ms(row.get('wall_time_ms'))}</td><td>{escape(str(row.get('parent_observation_id') or ''))}</td></tr>"
+            f"<tr><td>{escape(str(row.get('observation_id') or ''))}</td><td>{escape(str(row.get('stage')))}</td><td>{escape(str(row.get('agent')))}</td><td>{escape(str(row.get('tool') or ''))}</td><td>{escape(str(row.get('ticker') or ''))}</td><td>{_fmt_ms(row.get('wall_time_ms'))}</td><td>{escape(str(row.get('parent_observation_id') or ''))}</td></tr>"
             for row in exec_rows
         )
         timeline = f'<figure><img src="{escape(chart_assets["request_timeline"])}" alt="Request execution timeline"></figure>' if "request_timeline" in chart_assets else '<p class="empty">N/A / telemetry unavailable for this run</p>'
-        detail = f"<h3>Execution timeline for {escape(str(selected))}</h3>{timeline}<table><thead><tr><th>Stage</th><th>Agent</th><th>Tool</th><th>Ticker</th><th>Wall time</th><th>Parent observation</th></tr></thead><tbody>{detail_rows}</tbody></table>"
+        detail = f"<h3>Execution timeline for {escape(str(selected))}</h3>{timeline}<table><thead><tr><th>Observation</th><th>Stage</th><th>Agent</th><th>Tool</th><th>Ticker</th><th>Wall time</th><th>Parent observation</th></tr></thead><tbody>{detail_rows}</tbody></table>"
     return _section(
         "request-drilldown",
         "Request Drilldown",
@@ -335,8 +335,15 @@ def _artifact_index_section(root: Path, chart_assets: dict[str, str]) -> str:
         "request_cost_attributions.parquet",
         "agent_cost_attributions.parquet",
     ]
-    rows = "".join(f"<tr><td>{escape(name)}</td><td>{escape(str((root / name).as_posix()))}</td></tr>" for name in artifacts if (root / name).exists())
-    chart_rows = "".join(f"<tr><td>{escape(name)}</td><td>{escape(path)}</td></tr>" for name, path in sorted(chart_assets.items()))
+    rows = "".join(
+        f'<tr><td>{escape(name)}</td><td><a href="../{escape(name)}">../{escape(name)}</a></td></tr>'
+        for name in artifacts
+        if (root / name).exists()
+    )
+    chart_rows = "".join(
+        f'<tr><td>{escape(name)}</td><td><a href="{escape(path)}">{escape(path)}</a></td></tr>'
+        for name, path in sorted(chart_assets.items())
+    )
     return _section("artifact-index", "Artifact Index", f"<table><thead><tr><th>Artifact</th><th>Path</th></tr></thead><tbody>{rows}{chart_rows}</tbody></table>")
 
 
@@ -382,8 +389,10 @@ def _bar_chart(title: str, subtitle: str, rows: list[tuple[Any, ...]], *, y_labe
     clean = [(label, value, note) for label, value, note in clean if value is not None]
     if not clean:
         return _empty_chart(title, subtitle)
+    if len(clean) > 18:
+        subtitle = f"{subtitle} Showing first 18 of {len(clean)} rows."
     width = 920
-    height = max(260, 110 + len(clean) * 28)
+    height = max(260, 110 + min(len(clean), 18) * 28)
     max_value = max(value for _label, value, _note in clean) or 1.0
     lines = [_svg_header(width, height), _svg_title(title, subtitle, width), f'<text x="24" y="92" class="axis">{escape(y_label)}</text>']
     y = 110
@@ -444,6 +453,8 @@ def _scatter_chart(title: str, subtitle: str, points: list[tuple[Any, Any, Any]]
     clean = [(x, y, label) for x, y, label in clean if x is not None and y is not None]
     if not clean:
         return _empty_chart(title, subtitle)
+    if len(clean) > 180:
+        subtitle = f"{subtitle} Showing first 180 of {len(clean)} plotted points; full rows remain in tables/artifacts."
     width, height = 920, 320
     xs, ys = [x for x, _y, _label in clean], [y for _x, y, _label in clean]
     sx = lambda value: 90 + ((value - min(xs)) / max(max(xs) - min(xs), 1e-12)) * 760

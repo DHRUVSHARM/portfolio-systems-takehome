@@ -30,6 +30,24 @@ VLLM_METRICS = {
     "vllm:prefix_cache_queries_total": ("Prefix-cache queries", "queries/s", "rate", 1.0),
 }
 
+GPU_RAW_METRICS = {
+    "gpu_utilization": {
+        "dcgm_fi_dev_gpu_util": 1.0,
+    },
+    "gpu_memory_used_bytes": {
+        "dcgm_fi_dev_fb_used": 1024.0 * 1024.0,
+    },
+    "gpu_power_watts": {
+        "dcgm_fi_dev_power_usage": 1.0,
+    },
+    "gpu_temperature_c": {
+        "dcgm_fi_dev_gpu_temp": 1.0,
+    },
+    "gpu_energy_joules": {
+        "dcgm_fi_dev_total_energy_consumption": 1.0 / 1000.0,
+    },
+}
+
 
 def summarize_serving_telemetry(
     *,
@@ -157,6 +175,7 @@ def _field_summary(
 ) -> dict[str, Any]:
     values = [_float(row.get(field)) for row in rows]
     values = [value for value in values if value is not None]
+    values.extend(_raw_gpu_values(rows, field))
     if not values:
         return {
             "label": label,
@@ -175,6 +194,28 @@ def _field_summary(
         "max": max(normalized),
         "latest": normalized[-1],
     }
+
+
+def _raw_gpu_values(rows: list[dict[str, Any]], field: str) -> list[float]:
+    metrics = GPU_RAW_METRICS.get(field, {})
+    values: list[float] = []
+    for row in rows:
+        if _float(row.get(field)) is not None:
+            continue
+        raw = _parse_raw(row.get("raw"))
+        if not isinstance(raw, dict):
+            continue
+        metric = raw.get("metric")
+        if not isinstance(metric, dict) or metric.get("availability") == "unavailable":
+            continue
+        name = str(metric.get("name") or metric.get("__name__") or "").lower()
+        scale = metrics.get(name)
+        if scale is None:
+            continue
+        value = _float(raw.get("value"))
+        if value is not None:
+            values.append(value * scale)
+    return values
 
 
 def _scale_percent_if_needed(name: str, value: float) -> float:

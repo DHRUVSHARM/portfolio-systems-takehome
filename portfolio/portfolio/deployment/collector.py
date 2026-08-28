@@ -23,6 +23,7 @@ from ..analytics.models import (
 )
 from ..analytics.profiles import load_cost_profile
 from .provenance import build_run_provenance, redact_secrets
+from .telemetry_normalization import resource_type, sample_fields
 
 
 class TelemetryRequiredError(RuntimeError):
@@ -439,38 +440,11 @@ def _agent_from_stage(stage: str) -> str:
 
 
 def _sample_fields(metric_name: str, value: float | None) -> dict[str, Any]:
-    if value is None:
-        return {}
-    if "cpu" in metric_name:
-        return {"cpu_utilization": value}
-    if "memory" in metric_name or "mem" in metric_name:
-        return {"memory_bytes": int(value)}
-    if "gpu" in metric_name and "util" in metric_name:
-        return {"gpu_utilization": value}
-    if "fb_used" in metric_name or "gpu_memory" in metric_name:
-        return {"gpu_memory_used_bytes": int(value)}
-    if "power" in metric_name:
-        return {"gpu_power_watts": value}
-    if "temperature" in metric_name:
-        return {"gpu_temperature_c": value}
-    if "energy" in metric_name:
-        return {"gpu_energy_joules": value}
-    if "network_receive" in metric_name or "network_rx" in metric_name:
-        return {"network_rx_bytes": int(value)}
-    if "network_transmit" in metric_name or "network_tx" in metric_name:
-        return {"network_tx_bytes": int(value)}
-    return {}
+    return sample_fields(metric_name, value)
 
 
 def _resource_type(metric_name: str, metric: dict[str, Any]) -> str:
-    service = str(metric.get("service") or metric.get("job") or "")
-    if "DCGM" in metric_name or "gpu" in metric_name.lower() or service == "dcgm-exporter":
-        return "gpu"
-    if "container" in metric_name or service == "cadvisor":
-        return "container"
-    if service == "node-exporter" or metric_name.startswith("node_"):
-        return "host"
-    return "prometheus"
+    return resource_type(metric_name, metric)
 
 
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:

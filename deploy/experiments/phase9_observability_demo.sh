@@ -15,6 +15,24 @@ compose() {
   "${COMPOSE[@]}" "$@"
 }
 
+latest_run_id() {
+  find "$RESULTS_DIR/analytics" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %f\n' 2>/dev/null \
+    | sort -nr \
+    | awk 'NR==1 {print $2}'
+}
+
+print_next_commands() {
+  local run_id="$1"
+  cat <<COMMANDS
+RUN_ID=$run_id
+Next:
+  deploy/experiments/phase9_observability_demo.sh show_paths $run_id
+  deploy/experiments/phase9_observability_demo.sh render_report $run_id
+  deploy/experiments/phase9_observability_demo.sh verify_run $run_id
+  HTML report: results/phase8/analytics/$run_id/report/index.html
+COMMANDS
+}
+
 up() {
   "$PHASE8_CPU" start_stack
 }
@@ -62,12 +80,18 @@ single_request() {
 
 small_benchmark() {
   "$PHASE8_CPU" small_benchmark
+  local run_id
+  run_id="$(latest_run_id)"
+  if [[ -n "$run_id" ]]; then
+    print_next_commands "$run_id"
+  fi
 }
 
 collect_run() {
   local run_id="${1:?run_id required}"
   "$PHASE8_CPU" export_telemetry "$run_id"
   "$PHASE8_CPU" collect_run "$run_id"
+  print_next_commands "$run_id"
 }
 
 render_report() {
