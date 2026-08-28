@@ -131,6 +131,41 @@ small_benchmark() {
   verify_artifacts "$run_id"
 }
 
+canonical_100() {
+  local concurrency="${1:-2}"
+  local run_id="NONCANONICAL_CPU_CANONICAL_100_C${concurrency}-$(date -u +%Y%m%dT%H%M%SZ)"
+
+  echo "[1/4] Running canonical_100"
+  echo "      concurrency=$concurrency"
+  echo "      run_id=$run_id"
+
+  compose run --rm deployment-tools \
+    python -m portfolio.portfolio.benchmark \
+      --gateway-base-url "http://gateway:8000" \
+      --dataset-mode canonical_100 \
+      --concurrency "$concurrency" \
+      --request-timeout-seconds 180 \
+      --run-id "$run_id" \
+      --run-name "NONCANONICAL_CPU_CANONICAL_100_C${concurrency}" \
+      --output-root "/results/phase8/raw"
+
+  echo "[2/4] Exporting telemetry"
+  export_telemetry "$run_id"
+
+  echo "[3/4] Building analytics and HTML report"
+  collect_run "$run_id"
+
+  echo "[4/4] Verifying artifacts"
+  verify_artifacts "$run_id"
+
+  echo
+  echo "RUN_ID=$run_id"
+  echo "REPORT=$RESULTS_DIR/analytics/$run_id/report/index.html"
+  echo "JAEGER_TAG={\"run_id\":\"$run_id\"}"
+  echo "GRAFANA=http://localhost:3000"
+  echo "JAEGER=http://localhost:16686"
+}
+
 export_telemetry() {
   local run_id="$1"
   local telemetry_dir="$RESULTS_DIR/telemetry/$run_id"

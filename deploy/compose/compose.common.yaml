@@ -95,12 +95,13 @@ services:
       - ../../observability/prometheus/rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
     ports:
-      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     depends_on:
       alertmanager:
         condition: service_started
     networks:
       - observability
+      - frontend
 
   grafana:
     image: grafana/grafana:11.1.4
@@ -156,9 +157,10 @@ services:
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
-      - "127.0.0.1:${JAEGER_UI_PORT:-16686}:16686"
+      - "${JAEGER_UI_PORT:-16686}:16686"
     networks:
       - observability
+      - frontend
 
   loki:
     image: grafana/loki:3.1.1

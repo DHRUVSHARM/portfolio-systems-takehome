@@ -87,6 +87,30 @@ small_benchmark() {
   fi
 }
 
+run_100() {
+  local concurrency="${1:-2}"
+
+  echo "CPU 100-query experiment"
+  echo "  dataset: canonical_100"
+  echo "  concurrency: $concurrency"
+  echo "  mode: NONCANONICAL CPU"
+  echo
+
+  "$PHASE8_CPU" canonical_100 "$concurrency"
+
+  local run_id
+  run_id="$(latest_run_id)"
+
+  if [[ -n "$run_id" ]]; then
+    echo
+    echo "NEXT / OPEN"
+    echo "  Grafana: $GRAFANA_URL"
+    echo "  Jaeger:  $JAEGER_BASE_URL"
+    echo "  Jaeger tag: {\"run_id\":\"$run_id\"}"
+    echo "  HTML report: $RESULTS_DIR/analytics/$run_id/report/index.html"
+  fi
+}
+
 collect_run() {
   local run_id="${1:?run_id required}"
   "$PHASE8_CPU" export_telemetry "$run_id"

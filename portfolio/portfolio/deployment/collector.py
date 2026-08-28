@@ -162,11 +162,42 @@ def _observations_from_jaeger(
         return [], []
 
     spans = _iter_jaeger_spans(data)
+
+    # Some child agent/tool spans do not repeat request correlation tags.
+    # Resolve one request_id per trace and use it as a safe fallback.
+    trace_request_ids: dict[str, str] = {}
+    for span in spans:
+        tags = _span_tags(span)
+        request_id = tags.get("request_id") or tags.get(
+            "http.request.header.x_request_id"
+        )
+        if not request_id:
+            continue
+
+        trace_id = str(span.get("traceID") or span.get("trace_id") or "")
+        if not trace_id:
+            continue
+
+        request_id = str(request_id)
+        existing = trace_request_ids.get(trace_id)
+        if existing is not None and existing != request_id:
+            raise ValueError(
+                f"trace {trace_id} contains multiple request IDs: "
+                f"{existing!r}, {request_id!r}"
+            )
+        trace_request_ids[trace_id] = request_id
+
     execution: list[ExecutionObservation] = []
     inference: list[InferenceObservationRecord] = []
     for span in spans:
         tags = _span_tags(span)
-        request_id = str(tags.get("request_id") or tags.get("http.request.header.x_request_id") or "")
+        trace_id = str(span.get("traceID") or span.get("trace_id") or "")
+        request_id = str(
+            tags.get("request_id")
+            or tags.get("http.request.header.x_request_id")
+            or trace_request_ids.get(trace_id)
+            or ""
+        )
         if not request_id:
             continue
         query_id = str(tags.get("query_id") or query_by_request.get(request_id) or "")
