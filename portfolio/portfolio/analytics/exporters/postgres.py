@@ -170,19 +170,41 @@ class PostgresAnalyticsRepository:
                         _json(observation.raw),
                     ),
                 )
-            for observation in dataset.inference_observations:
+            for index, observation in enumerate(dataset.inference_observations):
+                observation_key = _inference_observation_key(observation, index)
                 cursor.execute(
                     """
                     INSERT INTO inference_observations (
-                      run_id, request_id, query_id, agent, model, started_at,
-                      finished_at, elapsed_ms, prompt_tokens, completion_tokens,
-                      total_tokens, ttft_ms, queue_ms, prefill_ms, decode_ms,
-                      generation_ms, mean_itl_ms, tpot_ms, tokens_per_second,
-                      status, error_type, attempt_count, retry_count, raw
+                      observation_key, run_id, request_id, query_id, agent, model,
+                      started_at, finished_at, elapsed_ms, prompt_tokens,
+                      completion_tokens, total_tokens, ttft_ms, queue_ms, prefill_ms,
+                      decode_ms, generation_ms, mean_itl_ms, tpot_ms,
+                      tokens_per_second, status, error_type, attempt_count,
+                      retry_count, raw
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (observation_key) DO UPDATE SET
+                      finished_at = EXCLUDED.finished_at,
+                      elapsed_ms = EXCLUDED.elapsed_ms,
+                      prompt_tokens = EXCLUDED.prompt_tokens,
+                      completion_tokens = EXCLUDED.completion_tokens,
+                      total_tokens = EXCLUDED.total_tokens,
+                      ttft_ms = EXCLUDED.ttft_ms,
+                      queue_ms = EXCLUDED.queue_ms,
+                      prefill_ms = EXCLUDED.prefill_ms,
+                      decode_ms = EXCLUDED.decode_ms,
+                      generation_ms = EXCLUDED.generation_ms,
+                      mean_itl_ms = EXCLUDED.mean_itl_ms,
+                      tpot_ms = EXCLUDED.tpot_ms,
+                      tokens_per_second = EXCLUDED.tokens_per_second,
+                      status = EXCLUDED.status,
+                      error_type = EXCLUDED.error_type,
+                      attempt_count = EXCLUDED.attempt_count,
+                      retry_count = EXCLUDED.retry_count,
+                      raw = EXCLUDED.raw
                     """,
                     (
+                        observation_key,
                         observation.run_id,
                         observation.request_id,
                         observation.query_id,
@@ -219,6 +241,18 @@ class PostgresAnalyticsRepository:
                       gpu_energy_joules, network_rx_bytes, network_tx_bytes, raw
                     )
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (run_id, timestamp, resource_type, resource_id)
+                    DO UPDATE SET
+                      cpu_utilization = EXCLUDED.cpu_utilization,
+                      memory_bytes = EXCLUDED.memory_bytes,
+                      gpu_utilization = EXCLUDED.gpu_utilization,
+                      gpu_memory_used_bytes = EXCLUDED.gpu_memory_used_bytes,
+                      gpu_power_watts = EXCLUDED.gpu_power_watts,
+                      gpu_temperature_c = EXCLUDED.gpu_temperature_c,
+                      gpu_energy_joules = EXCLUDED.gpu_energy_joules,
+                      network_rx_bytes = EXCLUDED.network_rx_bytes,
+                      network_tx_bytes = EXCLUDED.network_tx_bytes,
+                      raw = EXCLUDED.raw
                     """,
                     (
                         sample.run_id,
@@ -432,3 +466,24 @@ def _json(value: Any) -> Any:
     except ImportError:
         return json.dumps(value, sort_keys=True)
     return Jsonb(value)
+
+
+def _inference_observation_key(observation: Any, index: int) -> str:
+    raw = observation.raw or {}
+    explicit_id = raw.get("observation_id") or raw.get("inference_id")
+    if explicit_id is not None:
+        return f"{observation.run_id}:{explicit_id}"
+    return "|".join(
+        str(part)
+        for part in (
+            observation.run_id,
+            observation.request_id,
+            observation.query_id,
+            observation.agent,
+            observation.model,
+            observation.started_at or "",
+            observation.finished_at or "",
+            observation.attempt_count,
+            index,
+        )
+    )

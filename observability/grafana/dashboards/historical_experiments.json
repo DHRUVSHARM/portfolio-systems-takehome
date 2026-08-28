@@ -26,7 +26,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT run_id, dataset_mode, selected_query_count, benchmark_concurrency, model, max_num_seqs, total_run_cost_usd, request_cost_sum_usd, duration_seconds FROM experiment_cost_comparison ORDER BY run_id;",
+          "rawSql": "SELECT run_id, profile_id, profile_name, profile_version, dataset_mode, selected_query_count, benchmark_concurrency, model, max_num_seqs, total_run_cost_usd, request_cost_sum_usd, duration_seconds FROM experiment_cost_comparison ORDER BY run_id, profile_id;",
           "refId": "A"
         }
       ],
@@ -55,7 +55,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT run_id, agent, calls, cpu_seconds, wall_time_ms, p95_latency_ms, attributed_cost_usd, cost_percentage, failures FROM agent_cost_breakdown ORDER BY run_id, agent;",
+          "rawSql": "SELECT run_id, profile_id, agent, calls, cpu_seconds, wall_time_ms, p95_latency_ms, attributed_cost_usd, cost_percentage, failures FROM agent_cost_breakdown ORDER BY run_id, profile_id, agent;",
           "refId": "A"
         }
       ],
@@ -84,7 +84,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT r.run_id, r.query_id, r.n_holdings, r.lookback_days, r.phrasing, r.client_latency_ms, c.total_cost_usd, c.success FROM requests r JOIN request_cost_attributions c ON c.request_id = r.request_id ORDER BY r.run_id, r.query_id;",
+          "rawSql": "SELECT r.run_id, c.profile_id, r.query_id, r.n_holdings, r.lookback_days, r.phrasing, r.client_latency_ms, c.total_cost_usd, c.success FROM requests r JOIN request_cost_attributions c ON c.run_id = r.run_id AND c.request_id = r.request_id ORDER BY r.run_id, c.profile_id, r.query_id;",
           "refId": "A"
         }
       ],

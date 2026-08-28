@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from concurrent.futures import Future, InvalidStateError
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 import threading
@@ -278,7 +277,20 @@ class PortfolioRuntime:
         )
 
     async def _run_sync_advisor(self, *, holdings: dict, metrics: dict, risk: dict) -> str:
-        future: Future = Future()
+        loop = asyncio.get_running_loop()
+        result_future = loop.create_future()
+
+        def complete_with_result(result: str) -> None:
+            try:
+                result_future.set_result(result)
+            except asyncio.InvalidStateError:
+                pass
+
+        def complete_with_error(exc: BaseException) -> None:
+            try:
+                result_future.set_exception(exc)
+            except asyncio.InvalidStateError:
+                pass
 
         def run() -> None:
             try:
@@ -286,22 +298,20 @@ class PortfolioRuntime:
                     holdings=holdings, metrics=metrics, risk=risk
                 )
             except BaseException as exc:
-                try:
-                    future.set_exception(exc)
-                except InvalidStateError:
-                    pass
+                loop.call_soon_threadsafe(complete_with_error, exc)
             else:
-                try:
-                    future.set_result(result)
-                except InvalidStateError:
-                    pass
+                loop.call_soon_threadsafe(complete_with_result, result)
 
-        thread = threading.Thread(target=run, name="portfolio-advisor-compat")
+        thread = threading.Thread(
+            target=run,
+            name="portfolio-advisor-compat",
+            daemon=True,
+        )
         thread.start()
         try:
-            return await asyncio.wrap_future(future)
+            return await result_future
         finally:
-            if future.done() and not thread.is_alive():
+            if not thread.is_alive():
                 thread.join()
 
     def _record_cpu_slots(self) -> None:

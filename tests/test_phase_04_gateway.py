@@ -6,6 +6,10 @@ import unittest
 
 import httpx
 
+from portfolio.portfolio.observability import (
+    ObservabilityConfig,
+    reset_observability_for_tests,
+)
 from services.gateway import GatewayConfig, create_app
 from services.gateway.admission import AdmissionController
 from services.gateway.client import (
@@ -74,6 +78,12 @@ async def anyio_sleep(seconds):
 
 
 class Phase4GatewayTests(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        reset_observability_for_tests()
+
+    async def asyncTearDown(self):
+        reset_observability_for_tests()
+
     async def test_active_downstream_calls_never_exceed_max_in_flight(self):
         downstream = FakePortfolioClient(delay_seconds=0.03)
         app = _app_for(
@@ -269,6 +279,10 @@ class Phase4GatewayTests(unittest.IsolatedAsyncioTestCase):
         app = create_app(
             config=GatewayConfig(max_in_flight=2, queue_capacity=2),
             client_factory=factory,
+            observability_config=ObservabilityConfig(
+                service_name="gateway-test",
+                json_logging=False,
+            ),
         )
 
         async with _client_for_app(app) as client:
@@ -333,9 +347,59 @@ class Phase4GatewayTests(unittest.IsolatedAsyncioTestCase):
         second = await admission.acquire(queue_timeout_seconds=1)
         await second.release()
 
+    async def test_cancellation_after_successful_acquire_before_downstream_releases_capacity(self):
+        downstream = FakePortfolioClient()
+        app = _app_for(
+            downstream,
+            GatewayConfig(max_in_flight=1, queue_capacity=1, queue_timeout_seconds=1),
+        )
+
+        async with _client_for_app(app) as client:
+            app.state.admission = CancellingAfterAcquireAdmission(
+                max_in_flight=1,
+                queue_capacity=1,
+            )
+            cancelled = _post_task(client)
+            await _ignore_cancelled(cancelled)
+
+            snapshot = await app.state.admission.snapshot()
+            self.assertEqual(snapshot.active, 0)
+            self.assertEqual(snapshot.waiting, 0)
+            self.assertEqual(len(downstream.calls), 0)
+
+            app.state.admission.cancel_next_acquire = False
+            response = await _post(client)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(downstream.calls), 1)
+
 
 def _app_for(downstream, config):
-    return create_app(config=config, client_factory=lambda _config: downstream)
+    return create_app(
+        config=config,
+        client_factory=lambda _config: downstream,
+        observability_config=ObservabilityConfig(
+            service_name="gateway-test",
+            json_logging=False,
+        ),
+    )
+
+
+class CancellingAfterAcquireAdmission(AdmissionController):
+    def __init__(self, *, max_in_flight, queue_capacity):
+        super().__init__(max_in_flight=max_in_flight, queue_capacity=queue_capacity)
+        self.cancel_next_acquire = True
+
+    async def acquire(self, *, queue_timeout_seconds):
+        lease = await super().acquire(queue_timeout_seconds=queue_timeout_seconds)
+        return lease
+
+    async def snapshot(self):
+        if self.cancel_next_acquire:
+            self.cancel_next_acquire = False
+            asyncio.current_task().cancel()
+            await asyncio.sleep(0)
+        return await super().snapshot()
 
 
 @asynccontextmanager

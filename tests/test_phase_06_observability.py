@@ -282,17 +282,14 @@ class Phase6ObservabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertLess(events.index("drawdown"), events.index("timer-exit:MetricsAgent"))
 
     async def test_telemetry_export_failure_does_not_fail_workflow_request(self):
-        configure_tracing(
-            ObservabilityConfig(
-                service_name="bad-exporter",
-                otlp_endpoint="http://127.0.0.1:1",
-                tracing_sample_ratio=1.0,
-            )
-        )
         gateway_app = self._app()
 
-        async with _lifespan_client(gateway_app) as gateway_client:
-            response = await _post_gateway(gateway_client)
+        with patch(
+            "portfolio.portfolio.observability.tracing.get_tracer",
+            side_effect=RuntimeError("telemetry export failed"),
+        ):
+            async with _lifespan_client(gateway_app) as gateway_client:
+                response = await _post_gateway(gateway_client)
 
         self.assertEqual(response.status_code, 200)
 

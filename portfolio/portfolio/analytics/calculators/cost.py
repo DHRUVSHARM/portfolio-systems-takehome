@@ -181,14 +181,6 @@ def _allocate_agent_costs(
         if observation.agent in CPU_AGENTS:
             cpu_by_agent[observation.agent] += exclusive_work[id(observation)]
 
-    for observation in dataset.inference_observations:
-        wall = max(observation.elapsed_ms, 0.0)
-        wall_by_agent[observation.agent] += wall
-        latencies_by_agent[observation.agent].append(wall)
-        calls_by_agent[observation.agent] += 1
-        if observation.status < 200 or observation.status >= 300:
-            failures_by_agent[observation.agent] += 1
-
     cost_by_agent = {agent: 0.0 for agent in REQUIRED_AGENTS}
     cost_by_agent["overhead_unallocated"] = total * profile.overhead_pool_fraction
 
@@ -225,11 +217,7 @@ def _allocate_agent_costs(
                 cost_percentage=percent,
                 raw={
                     "boundary": "non-overlapping configured pools",
-                    "cpu_method": (
-                        "cpu_time_ms exclusive"
-                        if _has_any_cpu_time(dataset)
-                        else "exclusive wall_time_ms proxy"
-                    ),
+                    "cpu_method": _cpu_method(dataset),
                     "gpu_method": "AdvisorAgent shared inference pool",
                     "overhead_method": "explicit overhead_unallocated pool",
                     "profile": profile.profile_id,
@@ -379,8 +367,16 @@ def _work_ms(observation: Any) -> float:
     return max(float(observation.wall_time_ms or 0.0), 0.0)
 
 
-def _has_any_cpu_time(dataset: AnalyticsDataset) -> bool:
-    return any(
-        observation.cpu_time_ms is not None
+def _cpu_method(dataset: AnalyticsDataset) -> str:
+    observations = [
+        observation
         for observation in dataset.execution_observations
-    )
+        if observation.agent in CPU_AGENTS
+    ]
+    if observations and all(
+        observation.cpu_time_ms is not None for observation in observations
+    ):
+        return "measured_cpu_time"
+    if all(observation.cpu_time_ms is None for observation in observations):
+        return "exclusive_wall_time_proxy"
+    return "mixed_cpu_time_and_exclusive_wall_proxy"

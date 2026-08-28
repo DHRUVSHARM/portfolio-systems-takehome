@@ -165,89 +165,103 @@ def create_app(
                             headers=correlation_headers,
                         ) from exc
 
-                    async with lease:
-                        gateway_metrics.queue_wait_duration_seconds.labels("admitted").observe(
-                            time.perf_counter() - wait_started
-                        )
-                        snapshot = await admission.snapshot()
-                        gateway_metrics.set_admission_snapshot(
-                            active=snapshot.active, waiting=snapshot.waiting
-                        )
-
-                        response.headers["X-Request-ID"] = request_id
-                        if x_run_id is not None:
-                            response.headers["X-Run-ID"] = x_run_id
-                        if x_query_id is not None:
-                            response.headers["X-Query-ID"] = x_query_id
-
-                        downstream_started = time.perf_counter()
-                        downstream_status_class = "unknown"
-                        try:
-                            downstream = await request.app.state.portfolio_client.analyze(
-                                payload={
-                                    "holdings": holdings,
-                                    "lookback_days": lookback_days,
-                                },
-                                headers=inject_trace_context(correlation_headers),
-                            )
-                            downstream_status_class = f"{downstream.status_code // 100}xx"
-                        except DownstreamTimeoutError as exc:
-                            status_code = 504
-                            gateway_metrics.downstream_failures_total.labels("timeout").inc()
-                            raise HTTPException(
-                                status_code=504,
-                                detail="portfolio request timed out",
-                                headers=correlation_headers,
-                            ) from exc
-                        except DownstreamConnectionError as exc:
-                            status_code = 502
-                            gateway_metrics.downstream_failures_total.labels(
-                                "connection_failure"
-                            ).inc()
-                            raise HTTPException(
-                                status_code=502,
-                                detail="portfolio request failed",
-                                headers=correlation_headers,
-                            ) from exc
-                        finally:
-                            downstream_elapsed = time.perf_counter() - downstream_started
-                            gateway_metrics.downstream_duration_seconds.labels(
-                                downstream_status_class
-                            ).observe(downstream_elapsed)
-
-                        for header_name, header_value in downstream.headers.items():
-                            response.headers[header_name] = header_value
-
-                        if downstream.status_code < 200 or downstream.status_code >= 300:
-                            status_code = 502
-                            gateway_metrics.downstream_failures_total.labels(
-                                f"{downstream.status_code // 100}xx"
-                            ).inc()
-                            return JSONResponse(
-                                status_code=502,
-                                content={
-                                    "detail": "portfolio API returned non-success status",
-                                    "downstream_status_code": downstream.status_code,
-                                },
-                                headers={
-                                    name: value
-                                    for name, value in response.headers.items()
-                                    if name.lower()
-                                    in {"x-run-id", "x-request-id", "x-query-id"}
-                                },
+                    try:
+                        async with lease:
+                            gateway_metrics.queue_wait_duration_seconds.labels(
+                                "admitted"
+                            ).observe(time.perf_counter() - wait_started)
+                            snapshot = await admission.snapshot()
+                            gateway_metrics.set_admission_snapshot(
+                                active=snapshot.active, waiting=snapshot.waiting
                             )
 
-                        status_code = 200
-                        log_event(
-                            logger_name="gateway",
-                            event="gateway_request_completed",
-                            stage="gateway",
-                            status="success",
-                            run_id=x_run_id,
-                            request_id=request_id,
-                            query_id=x_query_id,
-                        )
-                        return downstream.body
+                            response.headers["X-Request-ID"] = request_id
+                            if x_run_id is not None:
+                                response.headers["X-Run-ID"] = x_run_id
+                            if x_query_id is not None:
+                                response.headers["X-Query-ID"] = x_query_id
+
+                            downstream_started = time.perf_counter()
+                            downstream_status_class = "unknown"
+                            try:
+                                downstream = await request.app.state.portfolio_client.analyze(
+                                    payload={
+                                        "holdings": holdings,
+                                        "lookback_days": lookback_days,
+                                    },
+                                    headers=inject_trace_context(correlation_headers),
+                                )
+                                downstream_status_class = (
+                                    f"{downstream.status_code // 100}xx"
+                                )
+                            except DownstreamTimeoutError as exc:
+                                status_code = 504
+                                gateway_metrics.downstream_failures_total.labels(
+                                    "timeout"
+                                ).inc()
+                                raise HTTPException(
+                                    status_code=504,
+                                    detail="portfolio request timed out",
+                                    headers=correlation_headers,
+                                ) from exc
+                            except DownstreamConnectionError as exc:
+                                status_code = 502
+                                gateway_metrics.downstream_failures_total.labels(
+                                    "connection_failure"
+                                ).inc()
+                                raise HTTPException(
+                                    status_code=502,
+                                    detail="portfolio request failed",
+                                    headers=correlation_headers,
+                                ) from exc
+                            finally:
+                                downstream_elapsed = (
+                                    time.perf_counter() - downstream_started
+                                )
+                                gateway_metrics.downstream_duration_seconds.labels(
+                                    downstream_status_class
+                                ).observe(downstream_elapsed)
+
+                            for header_name, header_value in downstream.headers.items():
+                                response.headers[header_name] = header_value
+
+                            if (
+                                downstream.status_code < 200
+                                or downstream.status_code >= 300
+                            ):
+                                status_code = 502
+                                gateway_metrics.downstream_failures_total.labels(
+                                    f"{downstream.status_code // 100}xx"
+                                ).inc()
+                                return JSONResponse(
+                                    status_code=502,
+                                    content={
+                                        "detail": (
+                                            "portfolio API returned non-success status"
+                                        ),
+                                        "downstream_status_code": downstream.status_code,
+                                    },
+                                    headers={
+                                        name: value
+                                        for name, value in response.headers.items()
+                                        if name.lower()
+                                        in {"x-run-id", "x-request-id", "x-query-id"}
+                                    },
+                                )
+
+                            status_code = 200
+                            log_event(
+                                logger_name="gateway",
+                                event="gateway_request_completed",
+                                stage="gateway",
+                                status="success",
+                                run_id=x_run_id,
+                                request_id=request_id,
+                                query_id=x_query_id,
+                            )
+                            return downstream.body
+                    finally:
+                        await lease.release()
                 finally:
                     span.set_attribute("http.status_code", status_code)
                     gateway_metrics.record_request(

@@ -1,4 +1,5 @@
 import json
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -49,6 +50,39 @@ class Phase7AnalyticsCostTests(unittest.TestCase):
         self.assertIn("INSERT INTO resource_samples", sql_text)
         self.assertTrue(connection.committed)
         self.assertTrue(any(params and params[1] == "req-fail" for _sql, params in connection.statements))
+
+    def test_raw_inference_and_resource_persistence_are_reimport_safe(self):
+        dataset = _dataset()
+        connection = RecordingConnection()
+        repository = PostgresAnalyticsRepository(connection)
+
+        repository.persist_raw_dataset(dataset)
+        repository.persist_raw_dataset(dataset)
+
+        sql_text = "\n".join(statement for statement, _params in connection.statements)
+        inference_params = [
+            params
+            for statement, params in connection.statements
+            if "INSERT INTO inference_observations" in statement
+        ]
+        resource_params = [
+            params
+            for statement, params in connection.statements
+            if "INSERT INTO resource_samples" in statement
+        ]
+
+        self.assertIn("UNIQUE(observation_key)", load_schema_sql())
+        self.assertIn(
+            "UNIQUE(run_id, timestamp, resource_type, resource_id)",
+            load_schema_sql(),
+        )
+        self.assertIn("ON CONFLICT (observation_key)", sql_text)
+        self.assertIn(
+            "ON CONFLICT (run_id, timestamp, resource_type, resource_id)",
+            sql_text,
+        )
+        self.assertEqual(inference_params[0][0], inference_params[1][0])
+        self.assertEqual(resource_params[0][0:4], resource_params[1][0:4])
 
     def test_run_request_execution_hierarchy_relationships_preserved(self):
         dataset = _dataset()
@@ -146,7 +180,38 @@ class Phase7AnalyticsCostTests(unittest.TestCase):
         metrics = next(row for row in analysis.agent_costs if row.agent == "MetricsAgent")
         self.assertAlmostEqual(overhead.cost_percentage, 20.0)
         self.assertAlmostEqual(advisor.cost_percentage, 50.0)
+        self.assertEqual(advisor.calls, 1)
+        self.assertEqual(advisor.wall_time_ms, 8000.0)
+        self.assertEqual(advisor.p50_latency_ms, 8000.0)
         self.assertEqual(metrics.raw["boundary"], "non-overlapping configured pools")
+
+    def test_cpu_cost_method_metadata_distinguishes_measured_proxy_and_mixed(self):
+        measured = calculate_costs(_dataset(), _profile())
+        measured_metrics = next(
+            row for row in measured.agent_costs if row.agent == "MetricsAgent"
+        )
+
+        no_cpu_dataset = _dataset_with_cpu_times(None)
+        proxied = calculate_costs(no_cpu_dataset, _profile())
+        proxied_metrics = next(
+            row for row in proxied.agent_costs if row.agent == "MetricsAgent"
+        )
+
+        mixed_dataset = _dataset_with_one_cpu_time_removed()
+        mixed = calculate_costs(mixed_dataset, _profile())
+        mixed_metrics = next(
+            row for row in mixed.agent_costs if row.agent == "MetricsAgent"
+        )
+
+        self.assertEqual(measured_metrics.raw["cpu_method"], "measured_cpu_time")
+        self.assertEqual(
+            proxied_metrics.raw["cpu_method"],
+            "exclusive_wall_time_proxy",
+        )
+        self.assertEqual(
+            mixed_metrics.raw["cpu_method"],
+            "mixed_cpu_time_and_exclusive_wall_proxy",
+        )
 
     def test_concurrent_gpu_attribution_does_not_double_count_overlapping_wall_time(self):
         dataset = _dataset_with_two_overlapping_successful_inferences()
@@ -254,6 +319,14 @@ class Phase7AnalyticsCostTests(unittest.TestCase):
         self.assertEqual(percent_group["average_prompt_tokens"], 100.0)
         self.assertEqual(percent_group["average_completion_tokens"], 25.0)
         self.assertEqual(equal_group["success_rate"], 0.0)
+        holdings_two = next(
+            row for row in report["holdings_count_breakdown"] if row["group"] == "2"
+        )
+        agent_only_total = sum(
+            row["cost_percentage"] for row in report["agent_only_cost_percentage"]
+        )
+        self.assertEqual(holdings_two["count"], 1)
+        self.assertAlmostEqual(agent_only_total, 100.0)
 
     def test_different_cost_profiles_persist_without_ambiguity(self):
         dataset = _dataset()
@@ -553,6 +626,37 @@ def _dataset_with_two_overlapping_successful_inferences() -> AnalyticsDataset:
                 status=200,
             ),
         ),
+        resource_samples=base.resource_samples,
+    )
+
+
+def _dataset_with_cpu_times(cpu_time_ms) -> AnalyticsDataset:
+    base = _dataset()
+    return AnalyticsDataset(
+        run=base.run,
+        requests=base.requests,
+        execution_observations=tuple(
+            replace(observation, cpu_time_ms=cpu_time_ms)
+            for observation in base.execution_observations
+            if observation.agent in {"PriceAgent", "MetricsAgent", "RiskAgent"}
+        ),
+        inference_observations=base.inference_observations,
+        resource_samples=base.resource_samples,
+    )
+
+
+def _dataset_with_one_cpu_time_removed() -> AnalyticsDataset:
+    base = _dataset()
+    return AnalyticsDataset(
+        run=base.run,
+        requests=base.requests,
+        execution_observations=tuple(
+            replace(observation, cpu_time_ms=None)
+            if observation.observation_id == "risk"
+            else observation
+            for observation in base.execution_observations
+        ),
+        inference_observations=base.inference_observations,
         resource_samples=base.resource_samples,
     )
 

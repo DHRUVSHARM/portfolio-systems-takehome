@@ -45,7 +45,7 @@ class AdmissionLease:
         if self._released:
             return
         self._released = True
-        await self._controller.release()
+        await asyncio.shield(self._controller.release())
 
 
 class AdmissionController:

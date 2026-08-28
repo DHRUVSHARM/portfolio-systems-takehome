@@ -95,6 +95,7 @@ CREATE INDEX IF NOT EXISTS idx_execution_ticker
 
 CREATE TABLE IF NOT EXISTS inference_observations (
   inference_id BIGSERIAL PRIMARY KEY,
+  observation_key TEXT NOT NULL,
   run_id TEXT NOT NULL REFERENCES experiment_runs(run_id) ON DELETE CASCADE,
   request_id TEXT NOT NULL REFERENCES requests(request_id) ON DELETE CASCADE,
   query_id TEXT NOT NULL,
@@ -118,7 +119,8 @@ CREATE TABLE IF NOT EXISTS inference_observations (
   error_type TEXT,
   attempt_count INTEGER NOT NULL,
   retry_count INTEGER NOT NULL,
-  raw JSONB NOT NULL DEFAULT '{}'::jsonb
+  raw JSONB NOT NULL DEFAULT '{}'::jsonb,
+  UNIQUE(observation_key)
 );
 
 CREATE INDEX IF NOT EXISTS idx_inference_run_request
@@ -141,7 +143,8 @@ CREATE TABLE IF NOT EXISTS resource_samples (
   gpu_energy_joules DOUBLE PRECISION,
   network_rx_bytes BIGINT,
   network_tx_bytes BIGINT,
-  raw JSONB NOT NULL DEFAULT '{}'::jsonb
+  raw JSONB NOT NULL DEFAULT '{}'::jsonb,
+  UNIQUE(run_id, timestamp, resource_type, resource_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_resource_samples_run_time

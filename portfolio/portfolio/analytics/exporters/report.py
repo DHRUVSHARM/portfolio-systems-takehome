@@ -38,6 +38,10 @@ def build_report_from_artifacts(output_dir: Path | str) -> dict[str, Any]:
     request_costs = read_parquet_rows(run_dir / "request_cost_attributions.parquet")
     agent_costs = read_parquet_rows(run_dir / "agent_cost_attributions.parquet")
     metrics = json.loads((run_dir / "metrics.json").read_text())
+    agent_only_costs = [
+        row for row in agent_costs if row["agent"] != "overhead_unallocated"
+    ]
+    agent_only_total = sum(row["attributed_cost_usd"] for row in agent_only_costs)
     return {
         "run_id": run["run_id"],
         "request_count": len(requests),
@@ -46,7 +50,19 @@ def build_report_from_artifacts(output_dir: Path | str) -> dict[str, Any]:
         "total_run_cost_usd": sum(row["total_cost_usd"] for row in request_costs),
         "assignment_metrics": metrics["metrics"],
         "agent_costs": agent_costs,
+        "agent_only_cost_percentage": [
+            {
+                "agent": row["agent"],
+                "cost_percentage": 0.0
+                if agent_only_total == 0.0
+                else row["attributed_cost_usd"] / agent_only_total * 100.0,
+            }
+            for row in agent_only_costs
+        ],
         "query_type_breakdown": json.loads(
             (run_dir / "charts" / "query_type_breakdown.json").read_text()
+        )["groups"],
+        "holdings_count_breakdown": json.loads(
+            (run_dir / "charts" / "holdings_count_breakdown.json").read_text()
         )["groups"],
     }
