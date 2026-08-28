@@ -1,14 +1,217 @@
 {
   "title": "Agent / Workflow Breakdown",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
+  "refresh": "5s",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
   "panels": [
-    {"type": "timeseries", "title": "Agent Call Volume", "targets": [{"expr": "sum(rate(portfolio_agent_calls_total[5m])) by (agent, status)"}]},
-    {"type": "timeseries", "title": "Per-Agent p50/p95/p99", "targets": [{"expr": "histogram_quantile(0.50, sum(rate(portfolio_agent_call_duration_seconds_bucket[5m])) by (le, agent))"}, {"expr": "histogram_quantile(0.95, sum(rate(portfolio_agent_call_duration_seconds_bucket[5m])) by (le, agent))"}, {"expr": "histogram_quantile(0.99, sum(rate(portfolio_agent_call_duration_seconds_bucket[5m])) by (le, agent))"}]},
-    {"type": "timeseries", "title": "Agent Error Rate", "targets": [{"expr": "sum(rate(portfolio_agent_errors_total[5m])) by (agent, error_type)"}]},
-    {"type": "timeseries", "title": "Tool Call Volume / Latency", "targets": [{"expr": "sum(rate(portfolio_tool_calls_total[5m])) by (agent, tool)"}, {"expr": "histogram_quantile(0.95, sum(rate(portfolio_tool_call_duration_seconds_bucket[5m])) by (le, agent, tool))"}]},
-    {"type": "timeseries", "title": "Metrics Fan-Out", "targets": [{"expr": "portfolio_metric_tasks_running"}, {"expr": "portfolio_metric_tasks_waiting"}]},
-    {"type": "timeseries", "title": "CPU Worker Saturation", "targets": [{"expr": "portfolio_workflow_cpu_slots_used"}, {"expr": "portfolio_workflow_cpu_slots_waiting"}]},
-    {"type": "timeseries", "title": "Risk / Advisor Latency", "targets": [{"expr": "histogram_quantile(0.95, sum(rate(portfolio_agent_call_duration_seconds_bucket{agent=\"RiskAgent\"}[5m])) by (le))"}, {"expr": "histogram_quantile(0.95, sum(rate(portfolio_agent_call_duration_seconds_bucket{agent=\"AdvisorAgent\"}[5m])) by (le))"}]}
+    {
+      "type": "timeseries",
+      "title": "Agent Call Rate",
+      "description": "Agent executions per second, separated by agent and completion status.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(portfolio_agent_calls_total[5m])) by (agent, status)",
+          "legendFormat": "{{agent}} \u00b7 {{status}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Per-Agent Latency p50 / p95 / p99",
+      "description": "Latency percentiles for each workflow agent. Tail latency helps identify the stage driving slow portfolio requests.",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.50, sum(rate(portfolio_agent_call_duration_seconds_bucket[5m])) by (le, agent))",
+          "legendFormat": "{{agent}} p50"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum(rate(portfolio_agent_call_duration_seconds_bucket[5m])) by (le, agent))",
+          "legendFormat": "{{agent}} p95"
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.99, sum(rate(portfolio_agent_call_duration_seconds_bucket[5m])) by (le, agent))",
+          "legendFormat": "{{agent}} p99"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Agent Error Rate",
+      "description": "Agent failures per second, separated by agent and error type.",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(portfolio_agent_errors_total[5m])) by (agent, error_type)",
+          "legendFormat": "{{agent}} \u00b7 {{error_type}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Tool Call Rate",
+      "description": "Tool invocations per second, separated by the agent and tool that performed the work.",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(portfolio_tool_calls_total[5m])) by (agent, tool)",
+          "legendFormat": "{{agent}} \u00b7 {{tool}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Tool Latency p95",
+      "description": "p95 execution latency for each agent tool.",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(portfolio_tool_call_duration_seconds_bucket[5m])) by (le, agent, tool))",
+          "legendFormat": "{{agent}} \u00b7 {{tool}} p95"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Metrics Fan-Out",
+      "description": "Parallel metric-computation tasks currently running versus tasks waiting for a MetricsAgent execution slot.",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(portfolio_metric_tasks_running)",
+          "legendFormat": "Running metric tasks"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(portfolio_metric_tasks_waiting)",
+          "legendFormat": "Waiting metric tasks"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Workflow CPU Slot Saturation",
+      "description": "Application CPU worker slots currently in use versus workflow work waiting for CPU capacity.",
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(portfolio_workflow_cpu_slots_used)",
+          "legendFormat": "CPU slots used"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(portfolio_workflow_cpu_slots_waiting)",
+          "legendFormat": "CPU work waiting"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Risk vs Advisor Latency p95",
+      "description": "Focused comparison between deterministic portfolio-risk computation and the AdvisorAgent path that includes LLM inference.",
+      "gridPos": {
+        "x": 0,
+        "y": 56,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(portfolio_agent_call_duration_seconds_bucket{agent=\"RiskAgent\"}[5m])) by (le))",
+          "legendFormat": "RiskAgent p95"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum(rate(portfolio_agent_call_duration_seconds_bucket{agent=\"AdvisorAgent\"}[5m])) by (le))",
+          "legendFormat": "AdvisorAgent p95"
+        }
+      ]
+    }
   ]
 }

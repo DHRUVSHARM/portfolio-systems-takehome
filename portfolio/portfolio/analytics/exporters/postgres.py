@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -54,6 +55,30 @@ class PostgresAnalyticsRepository:
                   duration_seconds = EXCLUDED.duration_seconds,
                   status = EXCLUDED.status,
                   invalid_reason = EXCLUDED.invalid_reason,
+                  run_name = EXCLUDED.run_name,
+                  dataset_mode = EXCLUDED.dataset_mode,
+                  selected_query_count = EXCLUDED.selected_query_count,
+                  selection_manifest = EXCLUDED.selection_manifest,
+                  sample_seed = EXCLUDED.sample_seed,
+                  benchmark_concurrency = EXCLUDED.benchmark_concurrency,
+                  gateway_max_in_flight = EXCLUDED.gateway_max_in_flight,
+                  gateway_queue_capacity = EXCLUDED.gateway_queue_capacity,
+                  workflow_cpu_workers = EXCLUDED.workflow_cpu_workers,
+                  max_concurrent_metric_tasks = EXCLUDED.max_concurrent_metric_tasks,
+                  model = EXCLUDED.model,
+                  model_revision = EXCLUDED.model_revision,
+                  vllm_version = EXCLUDED.vllm_version,
+                  dtype = EXCLUDED.dtype,
+                  max_model_len = EXCLUDED.max_model_len,
+                  max_num_seqs = EXCLUDED.max_num_seqs,
+                  max_num_batched_tokens = EXCLUDED.max_num_batched_tokens,
+                  gpu_memory_utilization = EXCLUDED.gpu_memory_utilization,
+                  prefix_caching_enabled = EXCLUDED.prefix_caching_enabled,
+                  hardware_profile = EXCLUDED.hardware_profile,
+                  git_commit = EXCLUDED.git_commit,
+                  config_hashes = EXCLUDED.config_hashes,
+                  cost_profile_name = EXCLUDED.cost_profile_name,
+                  cost_profile_version = EXCLUDED.cost_profile_version,
                   raw = EXCLUDED.raw
                 """,
                 (
@@ -128,12 +153,24 @@ class PostgresAnalyticsRepository:
                         _json(request.raw),
                     ),
                 )
+            execution_rows = []
             for index, observation in enumerate(dataset.execution_observations):
                 observation_id = observation.observation_id or (
                     f"{observation.run_id}:{observation.request_id}:"
                     f"{observation.stage}:{observation.agent}:"
                     f"{observation.tool or 'stage'}:{observation.ticker or 'all'}:{index}"
                 )
+                execution_rows.append((observation_id, observation))
+
+            execution_observation_ids = {
+                observation_id for observation_id, _ in execution_rows
+            }
+
+            # Insert every execution observation without its self-referencing
+            # parent first. PostgreSQL validates the foreign key immediately,
+            # so child-before-parent Jaeger ordering cannot be persisted safely
+            # in a single pass.
+            for observation_id, observation in execution_rows:
                 cursor.execute(
                     """
                     INSERT INTO execution_observations (
@@ -141,9 +178,9 @@ class PostgresAnalyticsRepository:
                       query_id, stage, agent, tool, ticker, started_at, finished_at,
                       wall_time_ms, cpu_time_ms, status, error_type, raw
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (observation_id) DO UPDATE SET
-                      parent_observation_id = EXCLUDED.parent_observation_id,
+                      parent_observation_id = NULL,
                       finished_at = EXCLUDED.finished_at,
                       wall_time_ms = EXCLUDED.wall_time_ms,
                       cpu_time_ms = EXCLUDED.cpu_time_ms,
@@ -153,7 +190,6 @@ class PostgresAnalyticsRepository:
                     """,
                     (
                         observation_id,
-                        observation.parent_observation_id,
                         observation.run_id,
                         observation.request_id,
                         observation.query_id,
@@ -170,6 +206,25 @@ class PostgresAnalyticsRepository:
                         _json(observation.raw),
                     ),
                 )
+
+            # Restore only execution-to-execution parent relationships. Jaeger
+            # may reference parent spans that the collector intentionally omits
+            # (for example spans without a request_id); those remain root-level
+            # observations in the analytics table rather than violating the FK.
+            for observation_id, observation in execution_rows:
+                parent_observation_id = observation.parent_observation_id
+                if (
+                    parent_observation_id
+                    and parent_observation_id in execution_observation_ids
+                ):
+                    cursor.execute(
+                        """
+                        UPDATE execution_observations
+                        SET parent_observation_id = %s
+                        WHERE observation_id = %s
+                        """,
+                        (parent_observation_id, observation_id),
+                    )
             for index, observation in enumerate(dataset.inference_observations):
                 observation_key = _inference_observation_key(observation, index)
                 cursor.execute(
@@ -460,12 +515,23 @@ class PostgresAnalyticsRepository:
         self.connection.commit()
 
 
+def _sanitize_json(value: Any) -> Any:
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {key: _sanitize_json(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_sanitize_json(item) for item in value]
+    return value
+
+
 def _json(value: Any) -> Any:
+    sanitized = _sanitize_json(value)
     try:
         from psycopg.types.json import Jsonb
     except ImportError:
-        return json.dumps(value, sort_keys=True)
-    return Jsonb(value)
+        return json.dumps(sanitized, sort_keys=True, allow_nan=False)
+    return Jsonb(sanitized)
 
 
 def _inference_observation_key(observation: Any, index: int) -> str:

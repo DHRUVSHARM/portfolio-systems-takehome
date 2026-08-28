@@ -1,13 +1,160 @@
 {
   "title": "Gateway",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
+  "refresh": "5s",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
   "panels": [
-    {"type": "timeseries", "title": "Inflight", "targets": [{"expr": "gateway_inflight_requests"}]},
-    {"type": "timeseries", "title": "Queued", "targets": [{"expr": "gateway_queued_requests"}]},
-    {"type": "timeseries", "title": "Rejections / Queue Timeouts", "targets": [{"expr": "sum(rate(gateway_admission_rejections_total[5m]))"}, {"expr": "rate(gateway_queue_timeouts_total[5m])"}]},
-    {"type": "timeseries", "title": "Queue Wait", "targets": [{"expr": "histogram_quantile(0.95, sum(rate(gateway_queue_wait_duration_seconds_bucket[5m])) by (le, outcome))"}]},
-    {"type": "timeseries", "title": "Status Codes", "targets": [{"expr": "sum(rate(gateway_requests_total[5m])) by (status_code)"}]},
-    {"type": "timeseries", "title": "Downstream Latency / Failures", "targets": [{"expr": "histogram_quantile(0.95, sum(rate(gateway_downstream_duration_seconds_bucket[5m])) by (le))"}, {"expr": "sum(rate(gateway_downstream_failures_total[5m])) by (error_type)"}]}
+    {
+      "type": "timeseries",
+      "title": "Inflight / Queued Requests",
+      "description": "Requests actively admitted by the gateway versus requests waiting for admission capacity.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(gateway_inflight_requests)",
+          "legendFormat": "Inflight"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(gateway_queued_requests)",
+          "legendFormat": "Queued"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Admission Rejections / Queue Timeouts",
+      "description": "Rate of requests rejected immediately by admission control or dropped after waiting too long in the gateway queue.",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(gateway_admission_rejections_total[5m]))",
+          "legendFormat": "Admission rejections/s"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(gateway_queue_timeouts_total[5m]))",
+          "legendFormat": "Queue timeouts/s"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Queue Wait p95",
+      "description": "p95 time requests spend waiting for gateway admission, separated by queue outcome.",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(gateway_queue_wait_duration_seconds_bucket[5m])) by (le, outcome))",
+          "legendFormat": "{{outcome}} p95"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate by HTTP Status",
+      "description": "Gateway request throughput split by returned HTTP status code.",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(gateway_requests_total[5m])) by (status_code)",
+          "legendFormat": "HTTP {{status_code}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Downstream Latency p95",
+      "description": "p95 latency of the gateway's downstream call to the Portfolio API.",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(gateway_downstream_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Downstream p95"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Downstream Failure Rate",
+      "description": "Gateway-to-Portfolio failures per second, separated by failure type.",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(gateway_downstream_failures_total[5m])) by (error_type)",
+          "legendFormat": "{{error_type}}"
+        }
+      ]
+    }
   ]
 }

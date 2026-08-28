@@ -48,7 +48,14 @@ class OpenAICompatibleInferenceClient:
         )
         self._closed = False
 
-    async def chat_completion(self, prompt: str) -> InferenceResult:
+    async def chat_completion(
+        self,
+        prompt: str,
+        *,
+        run_id: str | None = None,
+        request_id: str | None = None,
+        query_id: str | None = None,
+    ) -> InferenceResult:
         if self._closed:
             raise RuntimeError("inference client is closed")
         if not isinstance(prompt, str) or not prompt:
@@ -75,13 +82,21 @@ class OpenAICompatibleInferenceClient:
         started = time.perf_counter()
 
         for attempt in range(1, max_attempts + 1):
+            span_attributes = {
+                "model": self.config.model,
+                "inference.retry_count": self.config.retry_count,
+                "inference.attempt": attempt,
+            }
+            if run_id:
+                span_attributes["run_id"] = run_id
+            if request_id:
+                span_attributes["request_id"] = request_id
+            if query_id:
+                span_attributes["query_id"] = query_id
+
             with start_as_current_span(
                 "inference.request",
-                {
-                    "model": self.config.model,
-                    "inference.retry_count": self.config.retry_count,
-                    "inference.attempt": attempt,
-                },
+                span_attributes,
             ) as span:
                 try:
                     response = await self._client.post(

@@ -1,13 +1,165 @@
 {
   "title": "System Overview",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
+  "refresh": "5s",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
   "panels": [
-    {"type": "timeseries", "title": "Gateway RPS", "targets": [{"expr": "sum(rate(gateway_requests_total[1m]))"}]},
-    {"type": "timeseries", "title": "Gateway p95/p99", "targets": [{"expr": "histogram_quantile(0.95, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))"}, {"expr": "histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))"}]},
-    {"type": "timeseries", "title": "Gateway Inflight / Queue", "targets": [{"expr": "gateway_inflight_requests"}, {"expr": "gateway_queued_requests"}]},
-    {"type": "timeseries", "title": "Portfolio Active Workflows", "targets": [{"expr": "portfolio_workflows_active"}]},
-    {"type": "timeseries", "title": "vLLM Running / Waiting", "targets": [{"expr": "sum({__name__=~\"vllm:.*running.*|vllm_.*running.*\"})"}, {"expr": "sum({__name__=~\"vllm:.*waiting.*|vllm_.*waiting.*\"})"}]},
-    {"type": "timeseries", "title": "Host CPU / Memory / GPU", "targets": [{"expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))"}, {"expr": "1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes"}, {"expr": "avg(DCGM_FI_DEV_GPU_UTIL)"}]}
+    {
+      "type": "timeseries",
+      "title": "Gateway Request Rate",
+      "description": "Requests entering the system per second. Use this to see the offered traffic level during a benchmark.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(gateway_requests_total[1m]))",
+          "legendFormat": "Requests/s"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Gateway End-to-End Latency",
+      "description": "Tail latency observed at the gateway. p95 and p99 expose slow-request behavior that averages can hide.",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 latency"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p99 latency"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Gateway Inflight / Queued Requests",
+      "description": "Requests currently executing versus requests waiting for gateway admission. A growing queue indicates gateway-side pressure.",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(gateway_inflight_requests)",
+          "legendFormat": "Inflight"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(gateway_queued_requests)",
+          "legendFormat": "Queued"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Active Portfolio Workflows",
+      "description": "Portfolio analysis workflows currently executing inside the application.",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(portfolio_workflows_active)",
+          "legendFormat": "Active workflows"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "vLLM Running / Waiting Requests",
+      "description": "Inference requests actively scheduled by vLLM versus requests waiting for inference capacity.",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(vllm:num_requests_running)",
+          "legendFormat": "Running"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(vllm:num_requests_waiting)",
+          "legendFormat": "Waiting"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Host CPU / Memory / GPU Utilization",
+      "description": "Host and accelerator utilization. Host metrics require node-exporter; GPU utilization requires the NVIDIA DCGM exporter.",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[1m])))",
+          "legendFormat": "CPU utilization"
+        },
+        {
+          "refId": "B",
+          "expr": "100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)",
+          "legendFormat": "Memory utilization"
+        },
+        {
+          "refId": "C",
+          "expr": "avg(DCGM_FI_DEV_GPU_UTIL)",
+          "legendFormat": "GPU utilization"
+        }
+      ]
+    }
   ]
 }

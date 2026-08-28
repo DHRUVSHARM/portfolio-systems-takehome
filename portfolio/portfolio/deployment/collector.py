@@ -46,6 +46,28 @@ def build_dataset_from_artifacts(
         raw_metadata["provenance"] = redact_secrets(provenance)
         raw_metadata.setdefault("git_commit", provenance.get("git_commit"))
         raw_metadata.setdefault("config_hashes", provenance.get("config_hashes"))
+        raw_metadata.setdefault("hardware_profile", provenance.get("host"))
+
+        inference_profile = provenance.get("inference_profile") or {}
+        resolved_inference = inference_profile.get("resolved") or {}
+
+        for key in (
+            "model",
+            "model_revision",
+            "vllm_version",
+            "dtype",
+            "max_model_len",
+            "max_num_seqs",
+            "max_num_batched_tokens",
+            "gpu_memory_utilization",
+            "prefix_caching_enabled",
+        ):
+            value = resolved_inference.get(key)
+            if (
+                raw_metadata.get(key) in (None, "")
+                and value is not None
+            ):
+                raw_metadata[key] = value
 
     traces = _load_json(jaeger_trace_path) if jaeger_trace_path else None
     prometheus = _load_json(prometheus_samples_path) if prometheus_samples_path else None

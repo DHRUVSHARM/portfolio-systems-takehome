@@ -1,4 +1,12 @@
 services:
+  deployment-tools:
+    environment:
+      # GPU-only runtime knobs are not part of the CPU vLLM launch.
+      # Clear any values from the shared .env so CPU provenance does not
+      # falsely report settings that were never applied.
+      VLLM_GPU_MEMORY_UTILIZATION: ""
+      VLLM_ENABLE_PREFIX_CACHING: ""
+
   portfolio-api:
     environment:
       PORTFOLIO_INFERENCE_ENABLE_THINKING: ${PORTFOLIO_INFERENCE_ENABLE_THINKING:-false}

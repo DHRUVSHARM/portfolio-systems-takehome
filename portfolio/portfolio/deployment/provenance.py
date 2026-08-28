@@ -11,6 +11,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from ..analytics.profiles import load_cost_profile
 
 
@@ -53,9 +55,57 @@ def build_run_provenance(
     if inference_profile_path:
         profile_path = Path(inference_profile_path)
         if profile_path.exists():
+            profile_data = yaml.safe_load(profile_path.read_text()) or {}
+            vllm_profile = profile_data.get("vllm") or {}
+
+            def env_override(name: str, default: Any = None) -> Any:
+                value = os.environ.get(name)
+                return value if value not in (None, "") else default
+
+            prefix_env = os.environ.get("VLLM_ENABLE_PREFIX_CACHING")
+            if prefix_env not in (None, ""):
+                # Compose enables the flag whenever this variable is non-empty.
+                prefix_caching_enabled = True
+            else:
+                prefix_caching_enabled = vllm_profile.get(
+                    "prefix_caching_enabled"
+                )
+
             provenance["inference_profile"] = {
                 "path": str(profile_path),
                 "sha256": _hash_file(profile_path),
+                "resolved": {
+                    "model": env_override(
+                        "VLLM_MODEL",
+                        profile_data.get("model"),
+                    ),
+                    "model_revision": env_override(
+                        "VLLM_MODEL_REVISION",
+                        profile_data.get("model_revision"),
+                    ),
+                    "vllm_version": vllm_profile.get("vllm_version"),
+                    "dtype": env_override(
+                        "VLLM_DTYPE",
+                        vllm_profile.get("dtype"),
+                    ),
+                    "max_model_len": env_override(
+                        "VLLM_MAX_MODEL_LEN",
+                        vllm_profile.get("max_model_len"),
+                    ),
+                    "max_num_seqs": env_override(
+                        "VLLM_MAX_NUM_SEQS",
+                        vllm_profile.get("max_num_seqs"),
+                    ),
+                    "max_num_batched_tokens": env_override(
+                        "VLLM_MAX_NUM_BATCHED_TOKENS",
+                        vllm_profile.get("max_num_batched_tokens"),
+                    ),
+                    "gpu_memory_utilization": env_override(
+                        "VLLM_GPU_MEMORY_UTILIZATION",
+                        vllm_profile.get("gpu_memory_utilization"),
+                    ),
+                    "prefix_caching_enabled": prefix_caching_enabled,
+                },
             }
     if cost_profile_path:
         profile_path = Path(cost_profile_path)

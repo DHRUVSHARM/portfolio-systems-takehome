@@ -53,7 +53,12 @@ class VLLMAdvisorAgent:
             agent="AdvisorAgent", tool="summarize"
         ):
             prompt = build_advisor_prompt(holdings=holdings, metrics=metrics, risk=risk)
-            result = await self.client.chat_completion(prompt)
+            result = await self.client.chat_completion(
+                prompt,
+                run_id=context.run_id,
+                request_id=context.request_id,
+                query_id=context.query_id,
+            )
             observation = InferenceObservation(
                 run_id=context.run_id,
                 request_id=context.request_id,
