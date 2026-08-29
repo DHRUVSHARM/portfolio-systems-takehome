@@ -1,6 +1,6 @@
 # System Implementation Contracts
 
-This document is authoritative for Phases 2-8. Later phases may add implementation detail, but must not silently change these contracts.
+This document is authoritative for Phases 2-9. Later phases may add implementation detail, but must not silently change these contracts.
 
 ## Workload under test
 

@@ -74,6 +74,24 @@ watch:
 | System Overview | service health and host/container load |
 | Resources | CPU/RAM/container telemetry; GPU rows only on GPU hosts |
 
+## 100-Query CPU Baseline
+
+Run the verified baseline shape:
+
+```bash
+deploy/experiments/phase9_observability_demo.sh run_100 2
+```
+
+For deliberate local concurrency exploration, the wrapper also accepts:
+
+```bash
+deploy/experiments/phase9_observability_demo.sh run_100 16
+```
+
+The submission evidence uses the successful C2 artifact documented in
+[experiment_results.md](experiment_results.md). Do not use the failed CPU
+full_1000/C100 stress attempt as final evidence.
+
 ## Collect Or Re-render
 
 To collect an existing run:

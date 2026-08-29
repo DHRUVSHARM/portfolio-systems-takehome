@@ -31,3 +31,8 @@ Live and historical data serve different jobs:
 
 See [observability data flow](observability_data_flow.md) and
 [analytics data flow](analytics_data_flow.md) for the exact paths.
+
+Submission-facing summaries are in
+[experiment results](../experiment_results.md),
+[metrics reference](../metrics_reference.md), and
+[tradeoffs/future work](../tradeoffs_and_future_work.md).

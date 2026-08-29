@@ -1,4 +1,4 @@
-# Demo 1 Diagrams: 100-Query C=16 Observability Walkthrough
+# Demo 1 Diagrams: Observability Walkthrough
 
 Use this file as the visual reference during Loom Demo 1.
 
@@ -151,8 +151,8 @@ Important caveat:
 
 ```mermaid
 flowchart TD
-    A[100 Benchmark Queries] --> B[Client Concurrency = 16]
-    B --> C[Up to 16 Requests In Flight]
+    A[100 Benchmark Queries] --> B[Configurable Client Concurrency]
+    B --> C[Requests In Flight]
     C --> D[Gateway]
     D --> E[Portfolio API]
     E --> F[Advisor Inference Requests]
@@ -181,7 +181,14 @@ Metrics to watch:
 
 ## Quick Demo Commands
 
-Run the 100-query C=16 experiment:
+Run the verified 100-query CPU baseline shape:
+
+```bash
+deploy/experiments/phase9_observability_demo.sh run_100 2
+```
+
+Run a higher-concurrency 100-query rehearsal only when intentionally exploring
+local CPU saturation:
 
 ```bash
 deploy/experiments/phase9_observability_demo.sh run_100 16

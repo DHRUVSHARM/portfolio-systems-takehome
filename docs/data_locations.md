@@ -1,5 +1,10 @@
 # Data Location Matrix
 
+Companion docs:
+[experiment results](experiment_results.md),
+[metrics reference](metrics_reference.md), and
+[tradeoffs/future work](tradeoffs_and_future_work.md).
+
 | Question | Live location | Historical location | Raw artifact |
 | --- | --- | --- | --- |
 | Current request rate | Grafana -> System Overview / Live Benchmark | PostgreSQL `requests` grouped by time | `requests.parquet` |
@@ -34,3 +39,15 @@
 | Experiment serving config | Grafana dashboard labels where available | `run.json`, `provenance.json`, HTML report | `provenance.json` |
 | Run provenance | Live not applicable | HTML report -> Provenance | `provenance.json`, `run.json` |
 | Machine/hardware profile | Grafana -> Resources | HTML report -> Provenance | `provenance.json`, `resource_samples.parquet` |
+
+Successful CPU demo artifacts use:
+
+```text
+results/phase8/raw/<RUN_ID>/
+results/phase8/telemetry/<RUN_ID>/
+results/phase8/analytics/<RUN_ID>/
+```
+
+`requests.jsonl` contains the actual API responses, including generated
+Advisor summaries. The CPU demo may show GPU/DCGM rows as unavailable; that is
+expected and is distinct from a measured zero.

@@ -133,10 +133,12 @@ small_benchmark() {
 
 canonical_100() {
   local concurrency="${1:-2}"
+  local timeout_seconds="${CANONICAL_100_TIMEOUT_SECONDS:-180}"
   local run_id="NONCANONICAL_CPU_CANONICAL_100_C${concurrency}-$(date -u +%Y%m%dT%H%M%SZ)"
 
   echo "[1/4] Running canonical_100"
   echo "      concurrency=$concurrency"
+  echo "      request_timeout_seconds=$timeout_seconds"
   echo "      run_id=$run_id"
 
   compose run --rm deployment-tools \
@@ -144,7 +146,7 @@ canonical_100() {
       --gateway-base-url "http://gateway:8000" \
       --dataset-mode canonical_100 \
       --concurrency "$concurrency" \
-      --request-timeout-seconds 180 \
+      --request-timeout-seconds "$timeout_seconds" \
       --run-id "$run_id" \
       --run-name "NONCANONICAL_CPU_CANONICAL_100_C${concurrency}" \
       --output-root "/results/phase8/raw"

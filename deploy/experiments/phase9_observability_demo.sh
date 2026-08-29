@@ -25,6 +25,9 @@ print_next_commands() {
   local run_id="$1"
   cat <<COMMANDS
 RUN_ID=$run_id
+Grafana: $GRAFANA_URL
+Jaeger:  $JAEGER_BASE_URL
+Jaeger tag: {"run_id":"$run_id"}
 Next:
   deploy/experiments/phase9_observability_demo.sh show_paths $run_id
   deploy/experiments/phase9_observability_demo.sh render_report $run_id
@@ -89,10 +92,12 @@ small_benchmark() {
 
 run_100() {
   local concurrency="${1:-2}"
+  local timeout_seconds="${CANONICAL_100_TIMEOUT_SECONDS:-180}"
 
   echo "CPU 100-query experiment"
   echo "  dataset: canonical_100"
   echo "  concurrency: $concurrency"
+  echo "  request timeout: ${timeout_seconds}s"
   echo "  mode: NONCANONICAL CPU"
   echo
 
