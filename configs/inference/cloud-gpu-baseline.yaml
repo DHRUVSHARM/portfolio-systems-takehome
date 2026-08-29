@@ -1,0 +1,31 @@
+profile_name: cloud-gpu-baseline
+purpose: canonical Qwen GPU benchmark baseline
+model: Qwen/Qwen3-4B-Instruct-2507
+model_revision: required_immutable_huggingface_commit_sha
+model_revision_status: required before canonical measured GPU runs
+served_model_name: Qwen/Qwen3-4B-Instruct-2507
+advisor_base_url: http://vllm:8000/v1
+vllm:
+  image: vllm/vllm-openai:v0.8.5
+  image_digest_amd64: sha256:6cf9808ca8810fc6c3fd0451c2e7784fb224590d81f7db338e7eaf3c02a33d33
+  image_provenance: official vLLM OpenAI-compatible CUDA image on Docker Hub
+  vllm_version: 0.8.5
+  dtype: bfloat16
+  max_model_len: 4096
+  max_model_len_status: candidate; confirm with context-length measurement before canonical GPU run
+  max_num_seqs: 32
+  max_num_batched_tokens: null
+  gpu_memory_utilization: 0.90
+  prefix_caching_enabled: false
+  tensor_parallel_size: 1
+  speculative_decoding: false
+  lora: false
+  rag: false
+generation:
+  temperature: 0
+  max_tokens: 256
+  stream: false
+  retry_count: 0
+experiments:
+  concurrency: [1, 2, 4, 8, 16, 32, 64]
+  stop_rule: stop increasing concurrency when p95 latency or 503 saturation makes the run invalid

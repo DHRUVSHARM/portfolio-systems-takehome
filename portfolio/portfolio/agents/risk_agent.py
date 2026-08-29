@@ -18,6 +18,12 @@
 
 import math
 
+from ..observability import (
+    correlation_attributes,
+    portfolio_metrics,
+    start_as_current_span,
+)
+
 TRADING_DAYS = 252
 
 
@@ -27,7 +33,20 @@ class RiskAgent(object):
 
     def assess(self, holdings: dict, metrics: dict) -> dict:
         """Roll per-ticker metrics up into portfolio-level risk figures."""
-        # Keep only tickers that produced valid metrics.
+        with start_as_current_span(
+            "RiskAgent.assess",
+            {
+                **correlation_attributes(),
+                "agent": "RiskAgent",
+                "stage": "risk",
+                "n_holdings": len(holdings),
+            },
+        ), portfolio_metrics.agent_timer(agent="RiskAgent"), portfolio_metrics.tool_timer(
+            agent="RiskAgent", tool="assess"
+        ):
+            return self._assess(holdings=holdings, metrics=metrics)
+
+    def _assess(self, holdings: dict, metrics: dict) -> dict:
         valid = {t: m for t, m in metrics.items() if "error" not in m}
         if not valid:
             return {"error": "no valid ticker metrics"}

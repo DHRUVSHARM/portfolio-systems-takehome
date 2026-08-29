@@ -1,0 +1,178 @@
+{
+  "title": "vLLM Inference",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "5s",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Running / Waiting Requests",
+      "description": "Current vLLM scheduler pressure. Waiting requests indicate inference-side queueing.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(vllm:num_requests_running)",
+          "legendFormat": "Running"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(vllm:num_requests_waiting)",
+          "legendFormat": "Waiting"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "TTFT / Time Per Output Token p95",
+      "description": "p95 time to first token and time per generated output token.",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(vllm:time_to_first_token_seconds_bucket[5m])) by (le))",
+          "legendFormat": "TTFT p95"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum(rate(vllm:time_per_output_token_seconds_bucket[5m])) by (le))",
+          "legendFormat": "TPOT p95"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Queue / Prefill / Decode p95",
+      "description": "p95 inference-stage latency decomposition.",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(vllm:request_queue_time_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Queue p95"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum(rate(vllm:request_prefill_time_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Prefill p95"
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.95, sum(rate(vllm:request_decode_time_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Decode p95"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Prompt / Generation Token Throughput",
+      "description": "Prompt tokens consumed and output tokens generated per second.",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "tps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(vllm:prompt_tokens_total[5m]))",
+          "legendFormat": "Prompt tokens/s"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(vllm:generation_tokens_total[5m]))",
+          "legendFormat": "Generation tokens/s"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "KV Cache / Preemptions",
+      "description": "KV-cache occupancy and vLLM preemption pressure. Prefix-cache metrics are evaluated separately when prefix caching is enabled.",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(vllm:gpu_cache_usage_perc)",
+          "legendFormat": "KV cache usage"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(vllm:num_preemptions_total[5m]))",
+          "legendFormat": "Preemptions/s"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "GPU Utilization / VRAM / Power",
+      "description": "GPU hardware telemetry from DCGM. Expected to be empty during the local CPU rehearsal.",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg(DCGM_FI_DEV_GPU_UTIL)",
+          "legendFormat": "GPU utilization"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(DCGM_FI_DEV_FB_USED)",
+          "legendFormat": "VRAM used"
+        },
+        {
+          "refId": "C",
+          "expr": "avg(DCGM_FI_DEV_POWER_USAGE)",
+          "legendFormat": "Power"
+        }
+      ]
+    }
+  ]
+}

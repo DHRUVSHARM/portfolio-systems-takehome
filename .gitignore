@@ -7,6 +7,8 @@ __pycache__/
 # Environment / secrets
 .env
 .env.*
+!.env.example
+results/
 
 # OS / editor
 .DS_Store

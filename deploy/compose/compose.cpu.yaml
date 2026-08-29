@@ -1,0 +1,58 @@
+services:
+  deployment-tools:
+    environment:
+      # GPU-only runtime knobs are not part of the CPU vLLM launch.
+      # Clear any values from the shared .env so CPU provenance does not
+      # falsely report settings that were never applied.
+      VLLM_GPU_MEMORY_UTILIZATION: ""
+      VLLM_ENABLE_PREFIX_CACHING: ""
+
+  portfolio-api:
+    environment:
+      PORTFOLIO_INFERENCE_ENABLE_THINKING: ${PORTFOLIO_INFERENCE_ENABLE_THINKING:-false}
+    depends_on:
+      vllm:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+
+  vllm:
+    image: ${VLLM_CPU_IMAGE:-public.ecr.aws/q9t5s3a7/vllm-cpu-release-repo:v0.8.5}
+    entrypoint: ["/bin/sh", "-lc"]
+    command:
+      - >
+        python -m vllm.entrypoints.openai.api_server
+        --host 0.0.0.0
+        --port 8000
+        --model "$${VLLM_MODEL:-Qwen/Qwen3-4B-Instruct-2507}"
+        --served-model-name "$${VLLM_SERVED_MODEL_NAME:-Qwen/Qwen3-4B-Instruct-2507}"
+        $${VLLM_MODEL_REVISION:+--revision "$${VLLM_MODEL_REVISION}"}
+        --dtype "$${VLLM_DTYPE:-bfloat16}"
+        --max-model-len "$${VLLM_MAX_MODEL_LEN:-4096}"
+        --max-num-seqs "$${VLLM_MAX_NUM_SEQS:-8}"
+        --block-size "$${VLLM_BLOCK_SIZE:-16}"
+        $${VLLM_MAX_NUM_BATCHED_TOKENS:+--max-num-batched-tokens "$${VLLM_MAX_NUM_BATCHED_TOKENS}"}
+    environment:
+      VLLM_MODEL: ${VLLM_MODEL:-Qwen/Qwen3-4B-Instruct-2507}
+      VLLM_SERVED_MODEL_NAME: ${VLLM_SERVED_MODEL_NAME:-Qwen/Qwen3-4B-Instruct-2507}
+      VLLM_MODEL_REVISION: ${VLLM_MODEL_REVISION:-}
+      VLLM_DTYPE: ${VLLM_DTYPE:-bfloat16}
+      VLLM_MAX_MODEL_LEN: ${VLLM_MAX_MODEL_LEN:-4096}
+      VLLM_MAX_NUM_SEQS: ${VLLM_MAX_NUM_SEQS:-8}
+      VLLM_MAX_NUM_BATCHED_TOKENS: ${VLLM_MAX_NUM_BATCHED_TOKENS:-}
+      VLLM_BLOCK_SIZE: ${VLLM_BLOCK_SIZE:-16}
+      VLLM_CPU_KVCACHE_SPACE: ${VLLM_CPU_KVCACHE_SPACE:-8}
+      VLLM_CPU_OMP_THREADS_BIND: ${VLLM_CPU_OMP_THREADS_BIND:-0-7}
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - vllm-cache:/root/.cache/vllm
+    networks:
+      - backend
+      - observability
+      - egress
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/models', timeout=5).read()\""]
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 60s

@@ -1,0 +1,206 @@
+{
+  "title": "Live Benchmark",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "5s",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Gateway Request Rate",
+      "description": "Requests entering the benchmark system per second.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(gateway_requests_total[1m]))",
+          "legendFormat": "Requests/s"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Gateway Latency p95",
+      "description": "p95 end-to-end latency observed by the gateway during the active benchmark.",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Gateway p95"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Error Rate",
+      "description": "Gateway responses returning 4xx or 5xx status classes during the benchmark.",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(gateway_requests_total{status_class=~\"4xx|5xx\"}[5m])) by (status_class)",
+          "legendFormat": "{{status_class}} errors/s"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Gateway / vLLM Queue Pressure",
+      "description": "Requests waiting at the gateway compared with requests waiting inside the vLLM scheduler. This helps locate where queueing begins.",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(gateway_queued_requests)",
+          "legendFormat": "Gateway queued"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(vllm:num_requests_waiting)",
+          "legendFormat": "vLLM waiting"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "vLLM Running Requests",
+      "description": "Inference requests currently scheduled for model execution by vLLM.",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(vllm:num_requests_running)",
+          "legendFormat": "vLLM running"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Token Throughput",
+      "description": "Prompt tokens processed and generated tokens produced per second by vLLM.",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "tps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(vllm:prompt_tokens_total[1m]))",
+          "legendFormat": "Prompt tokens/s"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(vllm:generation_tokens_total[1m]))",
+          "legendFormat": "Generation tokens/s"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "KV Cache Utilization",
+      "description": "Fraction of vLLM KV-cache capacity currently occupied. Rising utilization indicates increasing inference-memory pressure.",
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(vllm:gpu_cache_usage_perc)",
+          "legendFormat": "KV cache utilization"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "GPU Utilization",
+      "description": "GPU compute utilization during the benchmark. Requires NVIDIA DCGM and is expected to be empty during the local CPU rehearsal.",
+      "gridPos": {
+        "x": 0,
+        "y": 56,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg(DCGM_FI_DEV_GPU_UTIL)",
+          "legendFormat": "GPU utilization"
+        }
+      ]
+    }
+  ]
+}

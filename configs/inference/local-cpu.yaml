@@ -1,0 +1,30 @@
+profile_name: local-cpu
+purpose: local smoke validation, not canonical GPU benchmarking
+model: Qwen/Qwen3-4B-Instruct-2507
+model_revision: null
+model_revision_status: optional for noncanonical local CPU smoke
+served_model_name: Qwen/Qwen3-4B-Instruct-2507
+advisor_base_url: http://vllm:8000/v1
+vllm:
+  image: public.ecr.aws/q9t5s3a7/vllm-cpu-release-repo:v0.8.5
+  image_provenance: official vLLM CPU release repository documented by vLLM
+  vllm_version: 0.8.5
+  dtype: bfloat16
+  max_model_len: 4096
+  max_model_len_status: candidate; run context measurement before canonical results
+  max_num_seqs: 8
+  max_num_batched_tokens: null
+  gpu_memory_utilization: null
+  prefix_caching_enabled: false
+  tensor_parallel_size: 1
+  speculative_decoding: false
+  lora: false
+  rag: false
+generation:
+  temperature: 0
+  max_tokens: 256
+  stream: false
+  retry_count: 0
+notes:
+  - CPU profile validates Compose, networking, health, telemetry, persistence, and reports.
+  - A smaller noncanonical model may be supplied with VLLM_MODEL for local smoke only.

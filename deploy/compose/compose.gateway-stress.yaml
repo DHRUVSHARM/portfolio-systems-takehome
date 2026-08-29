@@ -1,0 +1,23 @@
+services:
+  portfolio-api:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/app.Dockerfile
+    command: uvicorn portfolio.portfolio.deployment.fake_portfolio:app --host 0.0.0.0 --port 8000
+    environment:
+      FAKE_PORTFOLIO_DELAY_SECONDS: ${FAKE_PORTFOLIO_DELAY_SECONDS:-0.05}
+      FAKE_PORTFOLIO_STATUS_CODE: ${FAKE_PORTFOLIO_STATUS_CODE:-200}
+      OBSERVABILITY_ENVIRONMENT: ${OBSERVABILITY_ENVIRONMENT:-local}
+      OTEL_TRACES_ENABLED: ${OTEL_TRACES_ENABLED:-true}
+      OTEL_TRACES_SAMPLER_ARG: ${OTEL_TRACES_SAMPLER_ARG:-1.0}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}
+      JSON_LOGGING_ENABLED: ${JSON_LOGGING_ENABLED:-true}
+    depends_on:
+      otel-collector:
+        condition: service_started
+
+  prometheus:
+    volumes:
+      - ../../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../observability/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus

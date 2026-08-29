@@ -16,34 +16,48 @@
 #        -d '{"holdings": {"AAPL": 0.4, "MSFT": 0.35, "NVDA": 0.25}, "lookback_days": 180}'
 #   curl http://localhost:8080/status/<request_id>
 
-import json
-import sys
-import os
+"""Local clean-version workflow entry point.
 
-from metrics_agent import MetricsAgent
-from risk_agent import RiskAgent
-from advisor_agent import AdvisorAgent
+Ventis previously supplied remote Futures and serialized result transport.
+This local version keeps the same fan-out/barrier ordering with standard
+library futures and native Python dicts.
+"""
+
+import json
+from concurrent.futures import ThreadPoolExecutor
+
+from ..agents.advisor_agent import AdvisorAgent
+from ..agents.metrics_agent import MetricsAgent
+from ..agents.risk_agent import RiskAgent
 
 
 def main(
     holdings: dict = {"AAPL": 0.4, "MSFT": 0.35, "NVDA": 0.25},
     lookback_days: int = 365,
+    metrics_agent: MetricsAgent | None = None,
+    risk_agent: RiskAgent | None = None,
+    advisor: AdvisorAgent | None = None,
+    max_workers: int | None = None,
 ):
-    metrics_agent = MetricsAgent()
-    risk_agent = RiskAgent()
-    advisor = AdvisorAgent()
+    metrics_agent = metrics_agent or MetricsAgent()
+    risk_agent = risk_agent or RiskAgent()
+    advisor = advisor or AdvisorAgent()
 
     tickers = list(holdings.keys())
 
-    metric_futures = {
-        t: metrics_agent.compute(ticker=t, lookback_days=lookback_days) for t in tickers
-    }
-    per_ticker = {t: json.loads(f) for t, f in metric_futures.items()}
+    worker_count = max_workers or max(1, len(tickers))
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        metric_futures = {
+            t: executor.submit(
+                metrics_agent.compute, ticker=t, lookback_days=lookback_days
+            )
+            for t in tickers
+        }
+        per_ticker = {t: metric_futures[t].result() for t in tickers}
 
     # Stage 2: aggregate. RiskAgent needs every ticker's metrics (incl. the raw
     # return series) to build the covariance — this is the barrier.
-    # assess() also returns a dict -- same deserialization requirement as above.
-    risk = json.loads(risk_agent.assess(holdings=holdings, metrics=per_ticker))
+    risk = risk_agent.assess(holdings=holdings, metrics=per_ticker)
 
     # Stage 3: LLM briefing grounded in the computed numbers.
     summary = advisor.summarize(holdings=holdings, metrics=per_ticker, risk=risk)
@@ -60,3 +74,7 @@ def main(
         "risk": risk,
         "summary": summary,
     }
+
+
+if __name__ == "__main__":
+    print(json.dumps(main(), indent=2))

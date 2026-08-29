@@ -6,58 +6,87 @@
 #
 # Resource profile: cheap CPU, high fan-out — one compute() call per holding.
 
-import json
 import math
 
-from price_agent import PriceAgent
+from ..observability import (
+    correlation_attributes,
+    portfolio_metrics,
+    start_as_current_span,
+)
+from .price_agent import PriceAgent
 
 TRADING_DAYS = 252
 
 
 class MetricsAgent(object):
-    def __init__(self):
+    def __init__(self, price_agent: PriceAgent | None = None):
         self.tools = [self.compute]
-        self.price = PriceAgent()
+        self.price = price_agent or PriceAgent()
 
     def compute(self, ticker: str, lookback_days: int = 365) -> dict:
         """Compute return/volatility/Sharpe/drawdown metrics for one ticker."""
-        history = json.loads(
-            self.price.get_history(ticker=ticker, lookback_days=lookback_days))
-        )
-        closes = history.get("closes", [])
+        with start_as_current_span(
+            f"MetricsAgent[{ticker}]",
+            {
+                **correlation_attributes(),
+                "agent": "MetricsAgent",
+                "stage": "metrics",
+                "ticker": ticker,
+                "lookback_days": lookback_days,
+            },
+        ), portfolio_metrics.agent_timer(agent="MetricsAgent"):
+            with start_as_current_span(
+                f"PriceAgent.get_history[{ticker}]",
+                {
+                    **correlation_attributes(),
+                    "agent": "PriceAgent",
+                    "tool": "get_history",
+                    "stage": "metrics",
+                    "ticker": ticker,
+                    "lookback_days": lookback_days,
+                },
+            ), portfolio_metrics.tool_timer(
+                agent="PriceAgent", tool="get_history"
+            ), portfolio_metrics.agent_timer(
+                agent="PriceAgent"
+            ):
+                history = self.price.get_history(
+                    ticker=ticker, lookback_days=lookback_days
+                )
+            closes = history.get("closes", [])
 
-        if len(closes) < 2:
-            return {"ticker": ticker, "error": "insufficient price data"}
+            if len(closes) < 2:
+                return {"ticker": ticker, "error": "insufficient price data"}
 
-        # Simple daily returns.
-        returns = [
-            (closes[i] / closes[i - 1]) - 1.0 for i in range(1, len(closes))
-        ]
+            # Simple daily returns.
+            returns = [
+                (closes[i] / closes[i - 1]) - 1.0 for i in range(1, len(closes))
+            ]
 
-        mean_daily = sum(returns) / len(returns)
-        var_daily = sum((r - mean_daily) ** 2 for r in returns) / len(returns)
-        std_daily = math.sqrt(var_daily)
+            mean_daily = sum(returns) / len(returns)
+            var_daily = sum((r - mean_daily) ** 2 for r in returns) / len(returns)
+            std_daily = math.sqrt(var_daily)
 
-        ann_return = mean_daily * TRADING_DAYS
-        ann_vol = std_daily * math.sqrt(TRADING_DAYS)
-        sharpe = (ann_return / ann_vol) if ann_vol > 0 else 0.0
+            ann_return = mean_daily * TRADING_DAYS
+            ann_vol = std_daily * math.sqrt(TRADING_DAYS)
+            sharpe = (ann_return / ann_vol) if ann_vol > 0 else 0.0
 
-        total_return = (closes[-1] / closes[0]) - 1.0
-        max_drawdown = self._max_drawdown(closes)
+            total_return = (closes[-1] / closes[0]) - 1.0
+            max_drawdown = self._max_drawdown(closes)
 
-        return {
-            "ticker": ticker,
-            "source": history.get("source"),
-            "last_price": round(closes[-1], 2),
-            "n_days": len(closes),
-            "total_return": round(total_return, 4),
-            "annualized_return": round(ann_return, 4),
-            "annualized_volatility": round(ann_vol, 4),
-            "sharpe": round(sharpe, 3),
-            "max_drawdown": round(max_drawdown, 4),
-            # Raw daily returns for portfolio-level covariance downstream.
-            "returns": [round(r, 6) for r in returns],
-        }
+            return {
+                "ticker": ticker,
+                "source": history.get("source"),
+                "last_price": round(closes[-1], 2),
+                "n_days": len(closes),
+                "total_return": round(total_return, 4),
+                "annualized_return": round(ann_return, 4),
+                "annualized_volatility": round(ann_vol, 4),
+                "sharpe": round(sharpe, 3),
+                "max_drawdown": round(max_drawdown, 4),
+                # Raw daily returns for portfolio-level covariance downstream.
+                "returns": [round(r, 6) for r in returns],
+            }
 
     def _max_drawdown(self, closes: list) -> float:
         """Largest peak-to-trough decline over the period (negative number)."""
