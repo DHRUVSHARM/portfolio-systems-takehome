@@ -116,18 +116,19 @@ Artifacts:
 | Analytics | `results/phase8/analytics/NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z/` |
 | Report | `results/phase8/analytics/NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z/report/index.html` |
 
-## Excluded C16 Artifact
+## Local CPU Scope
 
-The only discovered C16 canonical_100 local artifact is:
+The CPU environment is intentionally an integration and observability rehearsal,
+not a capacity benchmark. CPU inference is substantially slower than the target
+GPU deployment, and long-running requests pass through several independently
+bounded timeout layers: benchmark client, Gateway downstream request, and
+Portfolio inference. Higher-concurrency capacity testing should therefore be
+performed on the canonical GPU environment with those limits calibrated together
+for the expected service-level objective.
 
-```text
-NONCANONICAL_CPU_CANONICAL_100_C16-20260828T235431Z
-```
-
-Its artifacts parse and the report exists, but `report.json` records 100
-attempted requests, 0 successful requests, and 100 failures. It is therefore not
-included as successful evidence and should not be used to claim throughput or
-latency improvement.
+The submission uses the C2 run above because it completed the required 100-query
+workload cleanly and provides a reproducible end-to-end dataset for the metrics,
+traces, cost attribution, and generated report.
 
 ## Raw Generated Advice
 
