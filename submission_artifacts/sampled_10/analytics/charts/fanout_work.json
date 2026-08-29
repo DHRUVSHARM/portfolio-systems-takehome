@@ -1,0 +1,645 @@
+{
+  "groups": [
+    {
+      "critical_path_wall_time_ms": 0.131,
+      "cumulative_wall_time_ms": 0.131,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 23802.713,
+      "cumulative_wall_time_ms": 23802.713,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 1.287,
+      "cumulative_wall_time_ms": 1.15,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 23838.885000000002,
+      "cumulative_wall_time_ms": 47657.096,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 1.087,
+      "cumulative_wall_time_ms": 0.742,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 0.13799999999999998,
+      "cumulative_wall_time_ms": 0.138,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 23840.843,
+      "cumulative_wall_time_ms": 47659.914000000004,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.051,
+      "cumulative_wall_time_ms": 0.051,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    },
+    {
+      "critical_path_wall_time_ms": 0.049,
+      "cumulative_wall_time_ms": 0.049,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 18836.575,
+      "cumulative_wall_time_ms": 18836.575,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 2.169,
+      "cumulative_wall_time_ms": 1.73,
+      "observation_count": 3,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 18843.037,
+      "cumulative_wall_time_ms": 18843.037,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 1.8639999999999999,
+      "cumulative_wall_time_ms": 0.884,
+      "observation_count": 3,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 0.644,
+      "cumulative_wall_time_ms": 0.644,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 18843.381,
+      "cumulative_wall_time_ms": 18843.381,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.064,
+      "cumulative_wall_time_ms": 0.064,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    },
+    {
+      "critical_path_wall_time_ms": 0.015000000000000001,
+      "cumulative_wall_time_ms": 0.015,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 29872.371000000003,
+      "cumulative_wall_time_ms": 29872.371,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 7.027,
+      "cumulative_wall_time_ms": 6.1129999999999995,
+      "observation_count": 3,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 29902.768,
+      "cumulative_wall_time_ms": 59790.209,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 6.058,
+      "cumulative_wall_time_ms": 2.364,
+      "observation_count": 3,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 1.1360000000000001,
+      "cumulative_wall_time_ms": 1.136,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 29904.035,
+      "cumulative_wall_time_ms": 59791.95,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.020999999999999998,
+      "cumulative_wall_time_ms": 0.021,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    },
+    {
+      "critical_path_wall_time_ms": 0.108,
+      "cumulative_wall_time_ms": 0.108,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 24053.128,
+      "cumulative_wall_time_ms": 24053.128,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 3.756,
+      "cumulative_wall_time_ms": 3.21,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 24073.255,
+      "cumulative_wall_time_ms": 48136.428,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 3.059,
+      "cumulative_wall_time_ms": 1.915,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 0.5429999999999999,
+      "cumulative_wall_time_ms": 0.543,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 24076.229000000003,
+      "cumulative_wall_time_ms": 48140.234,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.044,
+      "cumulative_wall_time_ms": 0.044,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    },
+    {
+      "critical_path_wall_time_ms": 0.088,
+      "cumulative_wall_time_ms": 0.088,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 27348.915,
+      "cumulative_wall_time_ms": 27348.915,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 23.212,
+      "cumulative_wall_time_ms": 19.947,
+      "observation_count": 5,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 27394.228,
+      "cumulative_wall_time_ms": 54779.352,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 20.477,
+      "cumulative_wall_time_ms": 10.515,
+      "observation_count": 5,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 8.241999999999999,
+      "cumulative_wall_time_ms": 8.242,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 27396.617,
+      "cumulative_wall_time_ms": 54782.259999999995,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.051,
+      "cumulative_wall_time_ms": 0.051,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    },
+    {
+      "critical_path_wall_time_ms": 0.094,
+      "cumulative_wall_time_ms": 0.094,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 26377.199,
+      "cumulative_wall_time_ms": 26377.199,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 50.381,
+      "cumulative_wall_time_ms": 96.279,
+      "observation_count": 3,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 26451.457000000002,
+      "cumulative_wall_time_ms": 52892.153999999995,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 36.892,
+      "cumulative_wall_time_ms": 40.785,
+      "observation_count": 3,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 8.030000000000001,
+      "cumulative_wall_time_ms": 8.03,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 26454.115999999998,
+      "cumulative_wall_time_ms": 52896.605,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.047,
+      "cumulative_wall_time_ms": 0.047,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    },
+    {
+      "critical_path_wall_time_ms": 0.068,
+      "cumulative_wall_time_ms": 0.068,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 31489.257999999998,
+      "cumulative_wall_time_ms": 31489.258,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 12.138,
+      "cumulative_wall_time_ms": 11.026,
+      "observation_count": 3,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 31517.717,
+      "cumulative_wall_time_ms": 63028.068,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 9.17,
+      "cumulative_wall_time_ms": 5.279,
+      "observation_count": 3,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 2.4250000000000003,
+      "cumulative_wall_time_ms": 2.425,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 31519.566000000003,
+      "cumulative_wall_time_ms": 63030.588,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.067,
+      "cumulative_wall_time_ms": 0.067,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    },
+    {
+      "critical_path_wall_time_ms": 0.091,
+      "cumulative_wall_time_ms": 0.091,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 31607.666999999998,
+      "cumulative_wall_time_ms": 31607.667,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 22.93,
+      "cumulative_wall_time_ms": 23.23,
+      "observation_count": 6,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 31653.742000000002,
+      "cumulative_wall_time_ms": 63300.037,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 20.603,
+      "cumulative_wall_time_ms": 13.789,
+      "observation_count": 6,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 9.358,
+      "cumulative_wall_time_ms": 9.358,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 31656.044,
+      "cumulative_wall_time_ms": 63302.965,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.049,
+      "cumulative_wall_time_ms": 0.049,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    },
+    {
+      "critical_path_wall_time_ms": 0.085,
+      "cumulative_wall_time_ms": 0.085,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 26580.690000000002,
+      "cumulative_wall_time_ms": 26580.69,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 2.2590000000000003,
+      "cumulative_wall_time_ms": 1.851,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 26596.48,
+      "cumulative_wall_time_ms": 53183.479999999996,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 1.838,
+      "cumulative_wall_time_ms": 0.81,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 0.53,
+      "cumulative_wall_time_ms": 0.53,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 26599.931,
+      "cumulative_wall_time_ms": 53187.867,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.085,
+      "cumulative_wall_time_ms": 0.085,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    },
+    {
+      "critical_path_wall_time_ms": 0.037,
+      "cumulative_wall_time_ms": 0.037,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "admission"
+    },
+    {
+      "critical_path_wall_time_ms": 24162.612,
+      "cumulative_wall_time_ms": 24162.612,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "advisor"
+    },
+    {
+      "critical_path_wall_time_ms": 21.912000000000003,
+      "cumulative_wall_time_ms": 19.509,
+      "observation_count": 4,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "metrics"
+    },
+    {
+      "critical_path_wall_time_ms": 24210.988,
+      "cumulative_wall_time_ms": 48413.146,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "portfolio"
+    },
+    {
+      "critical_path_wall_time_ms": 15.584000000000001,
+      "cumulative_wall_time_ms": 7.715,
+      "observation_count": 4,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "price"
+    },
+    {
+      "critical_path_wall_time_ms": 5.579,
+      "cumulative_wall_time_ms": 5.579,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "risk"
+    },
+    {
+      "critical_path_wall_time_ms": 24217.456,
+      "cumulative_wall_time_ms": 48420.288,
+      "observation_count": 2,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "unknown"
+    },
+    {
+      "critical_path_wall_time_ms": 0.036000000000000004,
+      "cumulative_wall_time_ms": 0.036,
+      "observation_count": 1,
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2",
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "stage": "validation"
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z"
+}

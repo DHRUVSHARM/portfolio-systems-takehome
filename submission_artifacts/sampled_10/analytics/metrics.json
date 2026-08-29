@@ -1,0 +1,132 @@
+{
+  "cost_profile": "reference_cpu_demo:2026-08-28",
+  "metrics": [
+    {
+      "calculated_at": "2026-08-28T21:24:58.099702+00:00",
+      "cost_profile_id": "reference_cpu_demo:2026-08-28",
+      "cost_profile_name": "reference_cpu_demo",
+      "cost_profile_version": "2026-08-28",
+      "name": "total_infrastructure_cost_usd",
+      "raw": {},
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "value": 0.03731512777777778,
+      "version": "1.0"
+    },
+    {
+      "calculated_at": "2026-08-28T21:24:58.099702+00:00",
+      "cost_profile_id": "reference_cpu_demo:2026-08-28",
+      "cost_profile_name": "reference_cpu_demo",
+      "cost_profile_version": "2026-08-28",
+      "name": "cost_per_query_attempt_usd",
+      "raw": {
+        "failed_requests": "included"
+      },
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "value": {
+        "18": 0.002223625858554917,
+        "347": 0.0042776702874665565,
+        "394": 0.004983565545641155,
+        "465": 0.0022370568381451057,
+        "491": 0.002514172298437146,
+        "519": 0.00222553353526026,
+        "545": 0.0033751105598269333,
+        "572": 0.008697559185456812,
+        "855": 0.0037932050071016322,
+        "860": 0.002987628661887263
+      },
+      "version": "1.0"
+    },
+    {
+      "calculated_at": "2026-08-28T21:24:58.099702+00:00",
+      "cost_profile_id": "reference_cpu_demo:2026-08-28",
+      "cost_profile_name": "reference_cpu_demo",
+      "cost_profile_version": "2026-08-28",
+      "name": "cost_per_successful_query_usd",
+      "raw": {
+        "failed_requests": "excluded from successful-only statistic"
+      },
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "value": {
+        "count": 10,
+        "iqr": 0.0018502182641572094,
+        "max": 0.008697559185456812,
+        "mean": 0.003731512777777778,
+        "median": 0.0031813696108570983,
+        "min": 0.002223625858554917,
+        "p50": 0.0031813696108570983,
+        "p75": 0.004156553967375325,
+        "p90": 0.005354964909622719,
+        "p95": 0.007026262047539762,
+        "p99": 0.008363299757873404,
+        "stddev": 0.0018833147896812356
+      },
+      "version": "1.0"
+    },
+    {
+      "calculated_at": "2026-08-28T21:24:58.099702+00:00",
+      "cost_profile_id": "reference_cpu_demo:2026-08-28",
+      "cost_profile_name": "reference_cpu_demo",
+      "cost_profile_version": "2026-08-28",
+      "name": "cost_per_query_distribution_usd",
+      "raw": {
+        "failed_requests": "included"
+      },
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "value": {
+        "count": 10,
+        "iqr": 0.0018502182641572094,
+        "max": 0.008697559185456812,
+        "mean": 0.003731512777777778,
+        "median": 0.0031813696108570983,
+        "min": 0.002223625858554917,
+        "p50": 0.0031813696108570983,
+        "p75": 0.004156553967375325,
+        "p90": 0.005354964909622719,
+        "p95": 0.007026262047539762,
+        "p99": 0.008363299757873404,
+        "stddev": 0.0018833147896812356
+      },
+      "version": "1.0"
+    },
+    {
+      "calculated_at": "2026-08-28T21:24:58.099702+00:00",
+      "cost_profile_id": "reference_cpu_demo:2026-08-28",
+      "cost_profile_name": "reference_cpu_demo",
+      "cost_profile_version": "2026-08-28",
+      "name": "agent_cost_percentage",
+      "raw": {},
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "value": {
+        "AdvisorAgent": 45.0,
+        "MetricsAgent": 15.74135587075724,
+        "PriceAgent": 13.449630670231565,
+        "RiskAgent": 5.809013459011191,
+        "overhead_unallocated": 20.0
+      },
+      "version": "1.0"
+    },
+    {
+      "calculated_at": "2026-08-28T21:24:58.099702+00:00",
+      "cost_profile_id": "reference_cpu_demo:2026-08-28",
+      "cost_profile_name": "reference_cpu_demo",
+      "cost_profile_version": "2026-08-28",
+      "name": "queries_per_dollar",
+      "raw": {},
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "value": 267.9878268018496,
+      "version": "1.0"
+    },
+    {
+      "calculated_at": "2026-08-28T21:24:58.099702+00:00",
+      "cost_profile_id": "reference_cpu_demo:2026-08-28",
+      "cost_profile_name": "reference_cpu_demo",
+      "cost_profile_version": "2026-08-28",
+      "name": "tokens_per_dollar",
+      "raw": {},
+      "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+      "value": 106283.97210961356,
+      "version": "1.0"
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z"
+}

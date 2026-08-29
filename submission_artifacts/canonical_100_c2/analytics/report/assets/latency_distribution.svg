@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="390" viewBox="0 0 920 390" role="img"><style>text{font-family:ui-sans-serif,system-ui,sans-serif;fill:#1f2937}.title{font-size:18px;font-weight:700}.subtitle,.axis,.tiny{font-size:12px;fill:#6b7280}.label{font-size:13px}.bar{fill:#0f766e}.box{fill:#d1fae5;stroke:#0f766e}.median,.axis-line{stroke:#111827;stroke-width:2}.line{fill:none;stroke:#0f766e;stroke-width:2.5}.dot{fill:#0f766e;opacity:.78}.empty{font-size:14px;fill:#6b7280}</style>
+<text x="24" y="32" class="title">Latency Distribution</text><text x="24" y="54" class="subtitle">Client-observed latency in ms. p95=38,015.88. x=Latency (ms)</text>
+<text x="24" y="92" class="axis">Requests</text>
+<text x="24" y="125" class="label">14,061.70-18,066.50</text>
+<rect x="240" y="110" width="201.6" height="18" rx="3" class="bar"></rect>
+<text x="451.6" y="124" class="tiny">9 </text>
+<text x="24" y="153" class="label">18,066.50-22,071.30</text>
+<rect x="240" y="138" width="425.6" height="18" rx="3" class="bar"></rect>
+<text x="675.6" y="152" class="tiny">19 </text>
+<text x="24" y="181" class="label">22,071.30-26,076.10</text>
+<rect x="240" y="166" width="470.4" height="18" rx="3" class="bar"></rect>
+<text x="720.4" y="180" class="tiny">21 </text>
+<text x="24" y="209" class="label">26,076.10-30,080.90</text>
+<rect x="240" y="194" width="560.0" height="18" rx="3" class="bar"></rect>
+<text x="810.0" y="208" class="tiny">25 </text>
+<text x="24" y="237" class="label">30,080.90-34,085.70</text>
+<rect x="240" y="222" width="268.8" height="18" rx="3" class="bar"></rect>
+<text x="518.8" y="236" class="tiny">12 </text>
+<text x="24" y="265" class="label">34,085.70-38,090.50</text>
+<rect x="240" y="250" width="201.6" height="18" rx="3" class="bar"></rect>
+<text x="451.6" y="264" class="tiny">9 </text>
+<text x="24" y="293" class="label">38,090.50-42,095.30</text>
+<rect x="240" y="278" width="67.2" height="18" rx="3" class="bar"></rect>
+<text x="317.2" y="292" class="tiny">3 </text>
+<text x="24" y="321" class="label">42,095.30-46,100.10</text>
+<rect x="240" y="306" width="22.4" height="18" rx="3" class="bar"></rect>
+<text x="272.4" y="320" class="tiny">1 </text>
+<text x="24" y="349" class="label">46,100.10-50,104.90</text>
+<rect x="240" y="334" width="0.0" height="18" rx="3" class="bar"></rect>
+<text x="250.0" y="348" class="tiny">0 </text>
+<text x="24" y="377" class="label">50,104.90-54,109.70</text>
+<rect x="240" y="362" width="22.4" height="18" rx="3" class="bar"></rect>
+<text x="272.4" y="376" class="tiny">1 </text>
+</svg>

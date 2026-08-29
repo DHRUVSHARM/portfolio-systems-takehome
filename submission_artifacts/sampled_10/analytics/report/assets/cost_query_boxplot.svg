@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="260" viewBox="0 0 920 260" role="img"><style>text{font-family:ui-sans-serif,system-ui,sans-serif;fill:#1f2937}.title{font-size:18px;font-weight:700}.subtitle,.axis,.tiny{font-size:12px;fill:#6b7280}.label{font-size:13px}.bar{fill:#0f766e}.box{fill:#d1fae5;stroke:#0f766e}.median,.axis-line{stroke:#111827;stroke-width:2}.line{fill:none;stroke:#0f766e;stroke-width:2.5}.dot{fill:#0f766e;opacity:.78}.empty{font-size:14px;fill:#6b7280}</style>
+<text x="24" y="32" class="title">Cost / Query Box Plot</text><text x="24" y="54" class="subtitle">Median, quartiles and range.</text>
+<line x1="100.0" x2="820.0" y1="138" y2="138" class="axis-line"></line>
+<rect x="109.2" y="110" width="205.8" height="56" rx="4" class="box"></rect>
+<line x1="206.5" x2="206.5" y1="102" y2="174" class="median"></line>
+<text x="100.0" y="220" class="tiny">min: $0.002224</text>
+<text x="109.2" y="220" class="tiny">q1: $0.002306</text>
+<text x="206.5" y="220" class="tiny">median: $0.003181</text>
+<text x="315.0" y="220" class="tiny">q3: $0.004157</text>
+<text x="820.0" y="220" class="tiny">max: $0.008698</text>
+</svg>

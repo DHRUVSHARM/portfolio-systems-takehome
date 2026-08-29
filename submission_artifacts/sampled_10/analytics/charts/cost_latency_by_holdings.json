@@ -1,0 +1,75 @@
+{
+  "points": [
+    {
+      "cost_usd": 0.00222553353526026,
+      "latency_ms": 25034.85178601113,
+      "n_holdings": 2,
+      "query_id": "519",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d"
+    },
+    {
+      "cost_usd": 0.002987628661887263,
+      "latency_ms": 31082.466404972365,
+      "n_holdings": 3,
+      "query_id": "860",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96"
+    },
+    {
+      "cost_usd": 0.0022370568381451057,
+      "latency_ms": 24083.680508018006,
+      "n_holdings": 2,
+      "query_id": "465",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c"
+    },
+    {
+      "cost_usd": 0.0042776702874665565,
+      "latency_ms": 28572.224580013426,
+      "n_holdings": 5,
+      "query_id": "347",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61"
+    },
+    {
+      "cost_usd": 0.008697559185456812,
+      "latency_ms": 27628.464718000032,
+      "n_holdings": 3,
+      "query_id": "572",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881"
+    },
+    {
+      "cost_usd": 0.0033751105598269333,
+      "latency_ms": 32690.836295019835,
+      "n_holdings": 3,
+      "query_id": "545",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6"
+    },
+    {
+      "cost_usd": 0.004983565545641155,
+      "latency_ms": 32827.64868999948,
+      "n_holdings": 6,
+      "query_id": "394",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30"
+    },
+    {
+      "cost_usd": 0.002514172298437146,
+      "latency_ms": 27791.3847110176,
+      "n_holdings": 2,
+      "query_id": "491",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23"
+    },
+    {
+      "cost_usd": 0.0037932050071016322,
+      "latency_ms": 25409.72484301892,
+      "n_holdings": 4,
+      "query_id": "855",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2"
+    },
+    {
+      "cost_usd": 0.002223625858554917,
+      "latency_ms": 18857.765033986652,
+      "n_holdings": 3,
+      "query_id": "18",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4"
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z"
+}

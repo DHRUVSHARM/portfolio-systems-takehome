@@ -1,0 +1,59 @@
+{
+  "config_hashes": {
+    "/app/configs/cost/reference_cpu_demo.yaml": "324f1cc6b53af76d1cf4a674b59cbb45882ac062fcc57ccb1f10156154f92c2e",
+    "/app/configs/inference/local-cpu.yaml": "0c42020eaf285881351bc2e0c6bbe6f21ba682bdccffe7b30ddc2eaeeaabf7a8",
+    "/app/deploy/compose/compose.common.yaml": "5a78de9bf13f9ac84939bdd24bb72b2c905701ca183f168d277624f6615a4eed",
+    "/app/deploy/compose/compose.cpu.yaml": "f98d6da64d43676abf0820bdce18003276d4a7751f65d28023484d2694032035"
+  },
+  "cost_profile": {
+    "machine_hourly_usd": 1.0,
+    "name": "reference_cpu_demo",
+    "path": "/app/configs/cost/reference_cpu_demo.yaml",
+    "profile_id": "reference_cpu_demo:2026-08-28",
+    "sha256": "324f1cc6b53af76d1cf4a674b59cbb45882ac062fcc57ccb1f10156154f92c2e",
+    "version": "2026-08-28"
+  },
+  "environment": {
+    "POSTGRES_DSN": "postgresql://portfolio:replace-with-local-secret@postgres:5432/portfolio_analytics",
+    "VLLM_DTYPE": "bfloat16",
+    "VLLM_ENABLE_PREFIX_CACHING": "",
+    "VLLM_GPU_MEMORY_UTILIZATION": "",
+    "VLLM_MAX_MODEL_LEN": "4096",
+    "VLLM_MAX_NUM_BATCHED_TOKENS": "<redacted>",
+    "VLLM_MAX_NUM_SEQS": "32",
+    "VLLM_MODEL": "Qwen/Qwen3-0.6B",
+    "VLLM_MODEL_REVISION": ""
+  },
+  "git_commit": null,
+  "host": {
+    "cpu_count": 14,
+    "gpu": {
+      "driver_supported_cuda_version": null,
+      "driver_version": null,
+      "memory_total_mb": null,
+      "name": null,
+      "toolkit_cuda_version": null
+    },
+    "hostname": "353b3218ff44",
+    "machine": "x86_64",
+    "platform": "Linux-5.15.153.1-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+    "processor": null
+  },
+  "inference_profile": {
+    "path": "/app/configs/inference/local-cpu.yaml",
+    "resolved": {
+      "dtype": "bfloat16",
+      "gpu_memory_utilization": null,
+      "max_model_len": "4096",
+      "max_num_batched_tokens": null,
+      "max_num_seqs": "32",
+      "model": "Qwen/Qwen3-0.6B",
+      "model_revision": null,
+      "prefix_caching_enabled": false,
+      "vllm_version": "0.8.5"
+    },
+    "sha256": "0c42020eaf285881351bc2e0c6bbe6f21ba682bdccffe7b30ddc2eaeeaabf7a8"
+  },
+  "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+  "run_name": "NONCANONICAL_CPU_INTEGRATION"
+}

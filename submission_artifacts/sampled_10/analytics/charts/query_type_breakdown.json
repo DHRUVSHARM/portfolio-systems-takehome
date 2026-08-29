@@ -1,0 +1,29 @@
+{
+  "groups": [
+    {
+      "average_completion_tokens": 130.42857142857142,
+      "average_prompt_tokens": 233.57142857142858,
+      "count": 7,
+      "group": "percent",
+      "mean_cost_per_query_usd": 0.0028343997199397402,
+      "mean_latency_ms": 26873.315617005574,
+      "median_cost_per_query_usd": 0.002514172298437146,
+      "p95_cost_per_query_usd": 0.004006902369174669,
+      "p95_latency_ms": 32208.325328005594,
+      "success_rate": 1.0
+    },
+    {
+      "average_completion_tokens": 132.33333333333334,
+      "average_prompt_tokens": 340.3333333333333,
+      "count": 3,
+      "group": "unweighted",
+      "mean_cost_per_query_usd": 0.005824776579399866,
+      "mean_latency_ms": 28621.94608367281,
+      "median_cost_per_query_usd": 0.004983565545641155,
+      "p95_cost_per_query_usd": 0.008326159821475245,
+      "p95_latency_ms": 32307.730292799533,
+      "success_rate": 1.0
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z"
+}

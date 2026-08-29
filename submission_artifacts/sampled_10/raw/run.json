@@ -1,0 +1,65 @@
+{
+  "artifacts": {
+    "config": "resolved_benchmark_config.yaml",
+    "requests": "requests.jsonl",
+    "run": "run.json"
+  },
+  "concurrency": 2,
+  "dataset_mode": "sampled_10",
+  "failure_count": 0,
+  "finished_at": "2026-08-28T20:53:23.744543Z",
+  "request_count": 10,
+  "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z",
+  "run_name": "NONCANONICAL_CPU_INTEGRATION",
+  "selected_query_count": 10,
+  "selected_query_ids": [
+    519,
+    860,
+    465,
+    347,
+    572,
+    545,
+    394,
+    491,
+    855,
+    18
+  ],
+  "selection": {
+    "sample_seed": 81,
+    "sample_size": 10,
+    "selected_query_count": 10,
+    "selected_query_ids": [
+      519,
+      860,
+      465,
+      347,
+      572,
+      545,
+      394,
+      491,
+      855,
+      18
+    ],
+    "selection_mode": "sampled_N"
+  },
+  "started_at": "2026-08-28T20:51:09.410083Z",
+  "strata": {
+    "lookback_bucket": {
+      "<=180": 1,
+      "<=90": 3,
+      ">365": 6
+    },
+    "n_holdings": {
+      "2": 3,
+      "3": 4,
+      "4": 1,
+      "5": 1,
+      "6": 1
+    },
+    "phrasing": {
+      "percent": 7,
+      "unweighted": 3
+    }
+  },
+  "success_count": 10
+}

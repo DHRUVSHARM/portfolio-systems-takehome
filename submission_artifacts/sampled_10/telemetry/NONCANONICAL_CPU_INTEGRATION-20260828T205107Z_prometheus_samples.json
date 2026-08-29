@@ -1,0 +1,1001 @@
+{
+  "data": {
+    "result": [
+      {
+        "metric": {
+          "__name__": "gateway_inflight_requests",
+          "availability": "available",
+          "instance": "gateway:8000",
+          "job": "gateway",
+          "name": "gateway_inflight_requests",
+          "query": "gateway_inflight_requests",
+          "service": "gateway"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "2"
+          ],
+          [
+            1787950299.41,
+            "2"
+          ],
+          [
+            1787950314.41,
+            "2"
+          ],
+          [
+            1787950329.41,
+            "2"
+          ],
+          [
+            1787950344.41,
+            "2"
+          ],
+          [
+            1787950359.41,
+            "2"
+          ],
+          [
+            1787950374.41,
+            "2"
+          ],
+          [
+            1787950389.41,
+            "2"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "gateway_queued_requests",
+          "availability": "available",
+          "instance": "gateway:8000",
+          "job": "gateway",
+          "name": "gateway_queued_requests",
+          "query": "gateway_queued_requests",
+          "service": "gateway"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "0"
+          ],
+          [
+            1787950299.41,
+            "0"
+          ],
+          [
+            1787950314.41,
+            "0"
+          ],
+          [
+            1787950329.41,
+            "0"
+          ],
+          [
+            1787950344.41,
+            "0"
+          ],
+          [
+            1787950359.41,
+            "0"
+          ],
+          [
+            1787950374.41,
+            "0"
+          ],
+          [
+            1787950389.41,
+            "0"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "portfolio_workflow_cpu_slots_used",
+          "availability": "available",
+          "instance": "portfolio-api:8000",
+          "job": "portfolio-api",
+          "name": "portfolio_workflow_cpu_slots_used",
+          "query": "portfolio_workflow_cpu_slots_used",
+          "service": "portfolio-api"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "0"
+          ],
+          [
+            1787950299.41,
+            "0"
+          ],
+          [
+            1787950314.41,
+            "0"
+          ],
+          [
+            1787950329.41,
+            "0"
+          ],
+          [
+            1787950344.41,
+            "0"
+          ],
+          [
+            1787950359.41,
+            "0"
+          ],
+          [
+            1787950374.41,
+            "0"
+          ],
+          [
+            1787950389.41,
+            "0"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "portfolio_workflow_cpu_slots_waiting",
+          "availability": "available",
+          "instance": "portfolio-api:8000",
+          "job": "portfolio-api",
+          "name": "portfolio_workflow_cpu_slots_waiting",
+          "query": "portfolio_workflow_cpu_slots_waiting",
+          "service": "portfolio-api"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "0"
+          ],
+          [
+            1787950299.41,
+            "0"
+          ],
+          [
+            1787950314.41,
+            "0"
+          ],
+          [
+            1787950329.41,
+            "0"
+          ],
+          [
+            1787950344.41,
+            "0"
+          ],
+          [
+            1787950359.41,
+            "0"
+          ],
+          [
+            1787950374.41,
+            "0"
+          ],
+          [
+            1787950389.41,
+            "0"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "portfolio_metric_tasks_running",
+          "availability": "available",
+          "instance": "portfolio-api:8000",
+          "job": "portfolio-api",
+          "name": "portfolio_metric_tasks_running",
+          "query": "portfolio_metric_tasks_running",
+          "service": "portfolio-api"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "0"
+          ],
+          [
+            1787950299.41,
+            "0"
+          ],
+          [
+            1787950314.41,
+            "0"
+          ],
+          [
+            1787950329.41,
+            "0"
+          ],
+          [
+            1787950344.41,
+            "0"
+          ],
+          [
+            1787950359.41,
+            "0"
+          ],
+          [
+            1787950374.41,
+            "0"
+          ],
+          [
+            1787950389.41,
+            "0"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "unavailable",
+          "name": "container_cpu_usage_seconds_total",
+          "query": "rate(container_cpu_usage_seconds_total{container!=\"\",image!=\"\"}[1m])"
+        },
+        "values": []
+      },
+      {
+        "metric": {
+          "availability": "unavailable",
+          "name": "container_memory_working_set_bytes",
+          "query": "container_memory_working_set_bytes{container!=\"\",image!=\"\"}"
+        },
+        "values": []
+      },
+      {
+        "metric": {
+          "availability": "unavailable",
+          "name": "node_cpu_seconds_total",
+          "query": "rate(node_cpu_seconds_total{mode!=\"idle\"}[1m])"
+        },
+        "values": []
+      },
+      {
+        "metric": {
+          "availability": "unavailable",
+          "name": "node_memory_MemAvailable_bytes",
+          "query": "node_memory_MemAvailable_bytes"
+        },
+        "values": []
+      },
+      {
+        "metric": {
+          "__name__": "vllm:num_requests_running",
+          "availability": "available",
+          "instance": "vllm:8000",
+          "job": "vllm",
+          "model_name": "Qwen/Qwen3-0.6B",
+          "name": "vllm:num_requests_running",
+          "query": "vllm:num_requests_running",
+          "service": "vllm"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "2"
+          ],
+          [
+            1787950299.41,
+            "1"
+          ],
+          [
+            1787950314.41,
+            "2"
+          ],
+          [
+            1787950329.41,
+            "2"
+          ],
+          [
+            1787950344.41,
+            "2"
+          ],
+          [
+            1787950359.41,
+            "1"
+          ],
+          [
+            1787950374.41,
+            "2"
+          ],
+          [
+            1787950389.41,
+            "2"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "vllm:num_requests_waiting",
+          "availability": "available",
+          "instance": "vllm:8000",
+          "job": "vllm",
+          "model_name": "Qwen/Qwen3-0.6B",
+          "name": "vllm:num_requests_waiting",
+          "query": "vllm:num_requests_waiting",
+          "service": "vllm"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "0"
+          ],
+          [
+            1787950299.41,
+            "0"
+          ],
+          [
+            1787950314.41,
+            "0"
+          ],
+          [
+            1787950329.41,
+            "0"
+          ],
+          [
+            1787950344.41,
+            "0"
+          ],
+          [
+            1787950359.41,
+            "0"
+          ],
+          [
+            1787950374.41,
+            "0"
+          ],
+          [
+            1787950389.41,
+            "0"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "vllm:gpu_cache_usage_perc",
+          "availability": "available",
+          "instance": "vllm:8000",
+          "job": "vllm",
+          "model_name": "Qwen/Qwen3-0.6B",
+          "name": "vllm:gpu_cache_usage_perc",
+          "query": "vllm:gpu_cache_usage_perc",
+          "service": "vllm"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "0.026495726495726513"
+          ],
+          [
+            1787950299.41,
+            "0.02051282051282055"
+          ],
+          [
+            1787950314.41,
+            "0.033333333333333326"
+          ],
+          [
+            1787950329.41,
+            "0.04017094017094014"
+          ],
+          [
+            1787950344.41,
+            "0.03675213675213673"
+          ],
+          [
+            1787950359.41,
+            "0.018803418803418848"
+          ],
+          [
+            1787950374.41,
+            "0.042735042735042694"
+          ],
+          [
+            1787950389.41,
+            "0.03162393162393162"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "instance": "vllm:8000",
+          "job": "vllm",
+          "model_name": "Qwen/Qwen3-0.6B",
+          "name": "vllm:num_preemptions_total",
+          "query": "increase(vllm:num_preemptions_total[1m])",
+          "service": "vllm"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "0"
+          ],
+          [
+            1787950299.41,
+            "0"
+          ],
+          [
+            1787950314.41,
+            "0"
+          ],
+          [
+            1787950329.41,
+            "0"
+          ],
+          [
+            1787950344.41,
+            "0"
+          ],
+          [
+            1787950359.41,
+            "0"
+          ],
+          [
+            1787950374.41,
+            "0"
+          ],
+          [
+            1787950389.41,
+            "0"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "instance": "vllm:8000",
+          "job": "vllm",
+          "model_name": "Qwen/Qwen3-0.6B",
+          "name": "vllm:prompt_tokens_total",
+          "query": "rate(vllm:prompt_tokens_total[1m])",
+          "service": "vllm"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "10.012772557248427"
+          ],
+          [
+            1787950299.41,
+            "10.28584817244611"
+          ],
+          [
+            1787950314.41,
+            "21.96724303116018"
+          ],
+          [
+            1787950329.41,
+            "18.864387317507557"
+          ],
+          [
+            1787950344.41,
+            "23.884478510813032"
+          ],
+          [
+            1787950359.41,
+            "12.257142187536619"
+          ],
+          [
+            1787950374.41,
+            "20.486380435278548"
+          ],
+          [
+            1787950389.41,
+            "21.853310823485273"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "instance": "vllm:8000",
+          "job": "vllm",
+          "model_name": "Qwen/Qwen3-0.6B",
+          "name": "vllm:generation_tokens_total",
+          "query": "rate(vllm:generation_tokens_total[1m])",
+          "service": "vllm"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "0"
+          ],
+          [
+            1787950284.41,
+            "1.049174345406441"
+          ],
+          [
+            1787950299.41,
+            "5.834114339268979"
+          ],
+          [
+            1787950314.41,
+            "7.9611296135772625"
+          ],
+          [
+            1787950329.41,
+            "10.45157359454456"
+          ],
+          [
+            1787950344.41,
+            "9.375855461264715"
+          ],
+          [
+            1787950359.41,
+            "9.327614896060373"
+          ],
+          [
+            1787950374.41,
+            "9.535976639138568"
+          ],
+          [
+            1787950389.41,
+            "8.863252673044457"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "unavailable",
+          "name": "vllm:prefix_cache_hits_total",
+          "query": "rate(vllm:prefix_cache_hits_total[1m])"
+        },
+        "values": []
+      },
+      {
+        "metric": {
+          "availability": "unavailable",
+          "name": "vllm:prefix_cache_queries_total",
+          "query": "rate(vllm:prefix_cache_queries_total[1m])"
+        },
+        "values": []
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "name": "vllm:e2e_p50",
+          "query": "histogram_quantile(0.50, sum(rate(vllm:e2e_request_latency_seconds_bucket[1m])) by (le))"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "NaN"
+          ],
+          [
+            1787950284.41,
+            "NaN"
+          ],
+          [
+            1787950299.41,
+            "25"
+          ],
+          [
+            1787950314.41,
+            "25"
+          ],
+          [
+            1787950329.41,
+            "25"
+          ],
+          [
+            1787950344.41,
+            "25"
+          ],
+          [
+            1787950359.41,
+            "25"
+          ],
+          [
+            1787950374.41,
+            "27.5"
+          ],
+          [
+            1787950389.41,
+            "32.5"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "name": "vllm:e2e_p95",
+          "query": "histogram_quantile(0.95, sum(rate(vllm:e2e_request_latency_seconds_bucket[1m])) by (le))"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "NaN"
+          ],
+          [
+            1787950284.41,
+            "NaN"
+          ],
+          [
+            1787950299.41,
+            "29.5"
+          ],
+          [
+            1787950314.41,
+            "29.5"
+          ],
+          [
+            1787950329.41,
+            "29.5"
+          ],
+          [
+            1787950344.41,
+            "29.5"
+          ],
+          [
+            1787950359.41,
+            "29.5"
+          ],
+          [
+            1787950374.41,
+            "38.5"
+          ],
+          [
+            1787950389.41,
+            "39.25"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "name": "vllm:ttft_p50",
+          "query": "histogram_quantile(0.50, sum(rate(vllm:time_to_first_token_seconds_bucket[1m])) by (le))"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "NaN"
+          ],
+          [
+            1787950284.41,
+            "3.75"
+          ],
+          [
+            1787950299.41,
+            "3.75"
+          ],
+          [
+            1787950314.41,
+            "4.166666666666666"
+          ],
+          [
+            1787950329.41,
+            "4.375"
+          ],
+          [
+            1787950344.41,
+            "5"
+          ],
+          [
+            1787950359.41,
+            "5"
+          ],
+          [
+            1787950374.41,
+            "6.25"
+          ],
+          [
+            1787950389.41,
+            "4.375"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "name": "vllm:ttft_p95",
+          "query": "histogram_quantile(0.95, sum(rate(vllm:time_to_first_token_seconds_bucket[1m])) by (le))"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "NaN"
+          ],
+          [
+            1787950284.41,
+            "4.875"
+          ],
+          [
+            1787950299.41,
+            "4.875"
+          ],
+          [
+            1787950314.41,
+            "7"
+          ],
+          [
+            1787950329.41,
+            "7.124999999999999"
+          ],
+          [
+            1787950344.41,
+            "7.25"
+          ],
+          [
+            1787950359.41,
+            "7.25"
+          ],
+          [
+            1787950374.41,
+            "9.625"
+          ],
+          [
+            1787950389.41,
+            "9.625"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "name": "vllm:tpot_p50",
+          "query": "histogram_quantile(0.50, sum(rate(vllm:time_per_output_token_seconds_bucket[1m])) by (le))"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "NaN"
+          ],
+          [
+            1787950284.41,
+            "0.1590909090909091"
+          ],
+          [
+            1787950299.41,
+            "0.13044041450777202"
+          ],
+          [
+            1787950314.41,
+            "0.12799625468164794"
+          ],
+          [
+            1787950329.41,
+            "0.12601351351351353"
+          ],
+          [
+            1787950344.41,
+            "0.12351632047477745"
+          ],
+          [
+            1787950359.41,
+            "0.12455621301775148"
+          ],
+          [
+            1787950374.41,
+            "0.12485337243401759"
+          ],
+          [
+            1787950389.41,
+            "0.12887205387205386"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "name": "vllm:tpot_p95",
+          "query": "histogram_quantile(0.95, sum(rate(vllm:time_per_output_token_seconds_bucket[1m])) by (le))"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "NaN"
+          ],
+          [
+            1787950284.41,
+            "0.3400000000000001"
+          ],
+          [
+            1787950299.41,
+            "0.25406249999999997"
+          ],
+          [
+            1787950314.41,
+            "0.2359375"
+          ],
+          [
+            1787950329.41,
+            "0.19046296296296297"
+          ],
+          [
+            1787950344.41,
+            "0.16549999999999995"
+          ],
+          [
+            1787950359.41,
+            "0.16937499999999986"
+          ],
+          [
+            1787950374.41,
+            "0.1831521739130435"
+          ],
+          [
+            1787950389.41,
+            "0.21406250000000007"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "name": "vllm:queue_p95",
+          "query": "histogram_quantile(0.95, sum(rate(vllm:request_queue_time_seconds_bucket[1m])) by (le))"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "NaN"
+          ],
+          [
+            1787950284.41,
+            "NaN"
+          ],
+          [
+            1787950299.41,
+            "0.285"
+          ],
+          [
+            1787950314.41,
+            "0.285"
+          ],
+          [
+            1787950329.41,
+            "0.285"
+          ],
+          [
+            1787950344.41,
+            "0.28500000000000003"
+          ],
+          [
+            1787950359.41,
+            "0.28500000000000003"
+          ],
+          [
+            1787950374.41,
+            "0.2849999999999999"
+          ],
+          [
+            1787950389.41,
+            "0.285"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "name": "vllm:prefill_p95",
+          "query": "histogram_quantile(0.95, sum(rate(vllm:request_prefill_time_seconds_bucket[1m])) by (le))"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "NaN"
+          ],
+          [
+            1787950284.41,
+            "NaN"
+          ],
+          [
+            1787950299.41,
+            "4.875"
+          ],
+          [
+            1787950314.41,
+            "4.875"
+          ],
+          [
+            1787950329.41,
+            "4.875"
+          ],
+          [
+            1787950344.41,
+            "9.25"
+          ],
+          [
+            1787950359.41,
+            "9.25"
+          ],
+          [
+            1787950374.41,
+            "9.625"
+          ],
+          [
+            1787950389.41,
+            "9.625"
+          ]
+        ]
+      },
+      {
+        "metric": {
+          "availability": "available",
+          "name": "vllm:decode_p95",
+          "query": "histogram_quantile(0.95, sum(rate(vllm:request_decode_time_seconds_bucket[1m])) by (le))"
+        },
+        "values": [
+          [
+            1787950269.41,
+            "NaN"
+          ],
+          [
+            1787950284.41,
+            "NaN"
+          ],
+          [
+            1787950299.41,
+            "29.5"
+          ],
+          [
+            1787950314.41,
+            "29.5"
+          ],
+          [
+            1787950329.41,
+            "29.25"
+          ],
+          [
+            1787950344.41,
+            "29.25"
+          ],
+          [
+            1787950359.41,
+            "29.25"
+          ],
+          [
+            1787950374.41,
+            "29.5"
+          ],
+          [
+            1787950389.41,
+            "29.5"
+          ]
+        ]
+      }
+    ]
+  }
+}

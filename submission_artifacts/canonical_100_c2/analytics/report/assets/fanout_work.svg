@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="446" viewBox="0 0 920 446" role="img"><style>text{font-family:ui-sans-serif,system-ui,sans-serif;fill:#1f2937}.title{font-size:18px;font-weight:700}.subtitle,.axis,.tiny{font-size:12px;fill:#6b7280}.label{font-size:13px}.bar{fill:#0f766e}.box{fill:#d1fae5;stroke:#0f766e}.median,.axis-line{stroke:#111827;stroke-width:2}.line{fill:none;stroke:#0f766e;stroke-width:2.5}.dot{fill:#0f766e;opacity:.78}.empty{font-size:14px;fill:#6b7280}</style>
+<text x="24" y="32" class="title">Workflow Fan-Out Work</text><text x="24" y="54" class="subtitle">Cumulative work vs critical path.</text>
+<text x="24" y="92" class="axis">Wall time (ms)</text>
+<text x="24" y="125" class="label">admission cumulative</text>
+<rect x="240" y="110" width="0.0" height="18" rx="3" class="bar"></rect>
+<text x="250.0" y="124" class="tiny">0.47 critical 0.47 ms</text>
+<text x="24" y="153" class="label">advisor cumulative</text>
+<rect x="240" y="138" width="279.7" height="18" rx="3" class="bar"></rect>
+<text x="529.7" y="152" class="tiny">24,223.07 critical 24,223.07 ms</text>
+<text x="24" y="181" class="label">metrics cumulative</text>
+<rect x="240" y="166" width="0.0" height="18" rx="3" class="bar"></rect>
+<text x="250.0" y="180" class="tiny">0.258 critical 0.26 ms</text>
+<text x="24" y="209" class="label">portfolio cumulative</text>
+<rect x="240" y="194" width="560.0" height="18" rx="3" class="bar"></rect>
+<text x="810.0" y="208" class="tiny">48,501.14 critical 24,270.70 ms</text>
+<text x="24" y="237" class="label">price cumulative</text>
+<rect x="240" y="222" width="0.0" height="18" rx="3" class="bar"></rect>
+<text x="250.0" y="236" class="tiny">0.092 critical 0.09 ms</text>
+<text x="24" y="265" class="label">risk cumulative</text>
+<rect x="240" y="250" width="0.0" height="18" rx="3" class="bar"></rect>
+<text x="250.0" y="264" class="tiny">0.084 critical 0.08 ms</text>
+<text x="24" y="293" class="label">unknown cumulative</text>
+<rect x="240" y="278" width="560.0" height="18" rx="3" class="bar"></rect>
+<text x="810.0" y="292" class="tiny">48,504.35 critical 24,273.38 ms</text>
+<text x="24" y="321" class="label">validation cumulative</text>
+<rect x="240" y="306" width="0.0" height="18" rx="3" class="bar"></rect>
+<text x="250.0" y="320" class="tiny">0.175 critical 0.17 ms</text>
+<text x="24" y="349" class="label">admission cumulative</text>
+<rect x="240" y="334" width="0.0" height="18" rx="3" class="bar"></rect>
+<text x="250.0" y="348" class="tiny">0.047 critical 0.05 ms</text>
+<text x="24" y="377" class="label">advisor cumulative</text>
+<rect x="240" y="362" width="225.1" height="18" rx="3" class="bar"></rect>
+<text x="475.1" y="376" class="tiny">19,495.44 critical 19,495.44 ms</text>
+<text x="24" y="405" class="label">metrics cumulative</text>
+<rect x="240" y="390" width="0.0" height="18" rx="3" class="bar"></rect>
+<text x="250.0" y="404" class="tiny">0.531 critical 0.53 ms</text>
+<text x="24" y="433" class="label">portfolio cumulative</text>
+<rect x="240" y="418" width="450.4" height="18" rx="3" class="bar"></rect>
+<text x="700.4" y="432" class="tiny">39,009.16 critical 19,508.50 ms</text>
+</svg>

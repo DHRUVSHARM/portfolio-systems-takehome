@@ -1,0 +1,14 @@
+{
+  "agent_cost_share": "assets/agent_cost_share.svg",
+  "agent_tool_latency": "assets/agent_tool_latency.svg",
+  "cost_latency_by_holdings": "assets/cost_latency_by_holdings.svg",
+  "cost_query_boxplot": "assets/cost_query_boxplot.svg",
+  "cost_query_cdf": "assets/cost_query_cdf.svg",
+  "cost_query_histogram": "assets/cost_query_histogram.svg",
+  "cost_vs_tokens": "assets/cost_vs_tokens.svg",
+  "fanout_work": "assets/fanout_work.svg",
+  "holdings_count_breakdown": "assets/holdings_count_breakdown.svg",
+  "latency_distribution": "assets/latency_distribution.svg",
+  "query_type_breakdown": "assets/query_type_breakdown.svg",
+  "request_timeline": "assets/request_timeline_NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z-1-dc96d6a30fc84035b8d2f1b1ada.svg"
+}

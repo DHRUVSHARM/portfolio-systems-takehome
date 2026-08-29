@@ -1,0 +1,10 @@
+dataset_mode: "sampled_10"
+concurrency: 2
+gateway_base_url: "http://gateway:8000"
+request_timeout_seconds: 180.0
+sample_size: 10
+sample_seed: 81
+run_id: "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z"
+run_name: "NONCANONICAL_CPU_INTEGRATION"
+output_root: "/results/phase8/raw"
+write_artifacts: true

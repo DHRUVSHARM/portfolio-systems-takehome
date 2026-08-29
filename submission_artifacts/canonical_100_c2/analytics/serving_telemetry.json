@@ -1,0 +1,237 @@
+{
+  "gpu": {
+    "energy_joules": {
+      "availability": "unavailable",
+      "label": "GPU energy",
+      "latest": null,
+      "max": null,
+      "mean": null,
+      "unit": "joules"
+    },
+    "memory_used_bytes": {
+      "availability": "unavailable",
+      "label": "GPU memory used",
+      "latest": null,
+      "max": null,
+      "mean": null,
+      "unit": "bytes"
+    },
+    "power_watts": {
+      "availability": "unavailable",
+      "label": "GPU power",
+      "latest": null,
+      "max": null,
+      "mean": null,
+      "unit": "watts"
+    },
+    "temperature_c": {
+      "availability": "unavailable",
+      "label": "GPU temperature",
+      "latest": null,
+      "max": null,
+      "mean": null,
+      "unit": "celsius"
+    },
+    "utilization_percent": {
+      "availability": "unavailable",
+      "label": "GPU utilization",
+      "latest": null,
+      "max": null,
+      "mean": null,
+      "unit": "percent"
+    }
+  },
+  "inference": {
+    "elapsed_ms": {
+      "count": 100,
+      "iqr": 8476.425500000001,
+      "max": 51545.002,
+      "mean": 25482.25483,
+      "median": 24996.296499999997,
+      "min": 14039.098,
+      "p50": 24996.296499999997,
+      "p75": 28836.0335,
+      "p90": 34842.2844,
+      "p95": 36678.7731,
+      "p99": 41816.047270000054,
+      "stddev": 6643.51335296645
+    },
+    "request_count": 100,
+    "total_completion_tokens": 12089,
+    "total_prompt_tokens": 25988,
+    "total_tokens": 38077
+  },
+  "source_note": "Exact per-request inference values come from inference spans. vLLM scheduler and histogram values are aggregate run-level Prometheus telemetry and are not assigned to individual requests.",
+  "vllm": {
+    "vllm:decode_p95": {
+      "availability": "available",
+      "label": "Aggregate decode p95",
+      "latest": 19750.0,
+      "max": 49000.0,
+      "mean": 27809.738955823294,
+      "name": "vllm:decode_p95",
+      "source": "run-level",
+      "unit": "ms"
+    },
+    "vllm:e2e_p50": {
+      "availability": "available",
+      "label": "Aggregate E2E p50",
+      "latest": 22500.0,
+      "max": 37500.0,
+      "mean": 26038.152610441768,
+      "name": "vllm:e2e_p50",
+      "source": "run-level",
+      "unit": "ms"
+    },
+    "vllm:e2e_p95": {
+      "availability": "available",
+      "label": "Aggregate E2E p95",
+      "latest": 29250.0,
+      "max": 59000.0,
+      "mean": 33475.05020080321,
+      "name": "vllm:e2e_p95",
+      "source": "run-level",
+      "unit": "ms"
+    },
+    "vllm:generation_tokens_total": {
+      "availability": "available",
+      "label": "Generation token throughput",
+      "latest": 9.801002999839703,
+      "max": 13.397893945092141,
+      "mean": 9.143201164832055,
+      "name": "vllm:generation_tokens_total",
+      "source": "rate",
+      "unit": "tokens/s"
+    },
+    "vllm:gpu_cache_usage_perc": {
+      "availability": "available",
+      "label": "KV-cache utilization",
+      "latest": 3.076923076923077,
+      "max": 94.01709401709368,
+      "mean": 4.7406082289803155,
+      "name": "vllm:gpu_cache_usage_perc",
+      "source": "gauge",
+      "unit": "percent"
+    },
+    "vllm:num_preemptions_total": {
+      "availability": "available",
+      "label": "Preemptions",
+      "latest": 0.0,
+      "max": 0.0,
+      "mean": 0.0,
+      "name": "vllm:num_preemptions_total",
+      "source": "increase",
+      "unit": "count"
+    },
+    "vllm:num_requests_running": {
+      "availability": "available",
+      "label": "Requests running",
+      "latest": 2.0,
+      "max": 2.0,
+      "mean": 1.441860465116279,
+      "name": "vllm:num_requests_running",
+      "source": "gauge",
+      "unit": "requests"
+    },
+    "vllm:num_requests_waiting": {
+      "availability": "available",
+      "label": "Requests waiting",
+      "latest": 0.0,
+      "max": 0.0,
+      "mean": 0.0,
+      "name": "vllm:num_requests_waiting",
+      "source": "gauge",
+      "unit": "requests"
+    },
+    "vllm:prefill_p95": {
+      "availability": "available",
+      "label": "Aggregate prefill p95",
+      "latest": 4875.0,
+      "max": 14750.0,
+      "mean": 8906.375502008032,
+      "name": "vllm:prefill_p95",
+      "source": "run-level",
+      "unit": "ms"
+    },
+    "vllm:prefix_cache_hits_total": {
+      "availability": "unavailable",
+      "label": "Prefix-cache hits",
+      "latest": null,
+      "max": null,
+      "mean": null,
+      "name": "vllm:prefix_cache_hits_total",
+      "source": "rate",
+      "unit": "hits/s"
+    },
+    "vllm:prefix_cache_queries_total": {
+      "availability": "unavailable",
+      "label": "Prefix-cache queries",
+      "latest": null,
+      "max": null,
+      "mean": null,
+      "name": "vllm:prefix_cache_queries_total",
+      "source": "rate",
+      "unit": "queries/s"
+    },
+    "vllm:prompt_tokens_total": {
+      "availability": "available",
+      "label": "Prompt token throughput",
+      "latest": 12.090956971764868,
+      "max": 32.88264945588166,
+      "mean": 20.035363062457442,
+      "name": "vllm:prompt_tokens_total",
+      "source": "rate",
+      "unit": "tokens/s"
+    },
+    "vllm:queue_p95": {
+      "availability": "available",
+      "label": "Aggregate queue p95",
+      "latest": 285.00000000000006,
+      "max": 285.00000000000006,
+      "mean": 285.0,
+      "name": "vllm:queue_p95",
+      "source": "run-level",
+      "unit": "ms"
+    },
+    "vllm:tpot_p50": {
+      "availability": "available",
+      "label": "Aggregate TPOT p50",
+      "latest": 135.23890784982933,
+      "max": 136.78278688524588,
+      "mean": 126.0035953633097,
+      "name": "vllm:tpot_p50",
+      "source": "run-level",
+      "unit": "ms"
+    },
+    "vllm:tpot_p95": {
+      "availability": "available",
+      "label": "Aggregate TPOT p95",
+      "latest": 304.4117647058825,
+      "max": 364.9999999999994,
+      "mean": 205.04016200164926,
+      "name": "vllm:tpot_p95",
+      "source": "run-level",
+      "unit": "ms"
+    },
+    "vllm:ttft_p50": {
+      "availability": "available",
+      "label": "Aggregate TTFT p50",
+      "latest": 3750.0,
+      "max": 15000.0,
+      "mean": 6037.450396825397,
+      "name": "vllm:ttft_p50",
+      "source": "run-level",
+      "unit": "ms"
+    },
+    "vllm:ttft_p95": {
+      "availability": "available",
+      "label": "Aggregate TTFT p95",
+      "latest": 4875.0,
+      "max": 19500.0,
+      "mean": 8450.967261904761,
+      "name": "vllm:ttft_p95",
+      "source": "run-level",
+      "unit": "ms"
+    }
+  }
+}

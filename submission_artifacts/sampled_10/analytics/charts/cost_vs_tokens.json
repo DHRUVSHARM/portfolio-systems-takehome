@@ -1,0 +1,75 @@
+{
+  "points": [
+    {
+      "completion_tokens": 124,
+      "cost_usd": 0.00222553353526026,
+      "prompt_tokens": 194,
+      "query_id": "519",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-1-ee9b30138032460b8ae83a08fb501c2d"
+    },
+    {
+      "completion_tokens": 140,
+      "cost_usd": 0.002987628661887263,
+      "prompt_tokens": 245,
+      "query_id": "860",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-2-a7d0bfa2270645af9fa8ad5b5f674a96"
+    },
+    {
+      "completion_tokens": 111,
+      "cost_usd": 0.0022370568381451057,
+      "prompt_tokens": 195,
+      "query_id": "465",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-3-62620fc096b94293b532252d89d2d99c"
+    },
+    {
+      "completion_tokens": 133,
+      "cost_usd": 0.0042776702874665565,
+      "prompt_tokens": 329,
+      "query_id": "347",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-4-c33e2fe263454dddb9a1144a133c5d61"
+    },
+    {
+      "completion_tokens": 138,
+      "cost_usd": 0.008697559185456812,
+      "prompt_tokens": 281,
+      "query_id": "572",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-5-1b2f156ff353448180db3dcce8be7881"
+    },
+    {
+      "completion_tokens": 138,
+      "cost_usd": 0.0033751105598269333,
+      "prompt_tokens": 242,
+      "query_id": "545",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-6-0acb0064d55348cabf7aec47a9491ae6"
+    },
+    {
+      "completion_tokens": 138,
+      "cost_usd": 0.004983565545641155,
+      "prompt_tokens": 464,
+      "query_id": "394",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-7-fcc61ae7f7f54d4e8c48e55a7828df30"
+    },
+    {
+      "completion_tokens": 142,
+      "cost_usd": 0.002514172298437146,
+      "prompt_tokens": 192,
+      "query_id": "491",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-8-5408e6e2fa18485dbfd048a013fb3d23"
+    },
+    {
+      "completion_tokens": 121,
+      "cost_usd": 0.0037932050071016322,
+      "prompt_tokens": 276,
+      "query_id": "855",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-9-e575df25ca06409ebd5f22d14b044cc2"
+    },
+    {
+      "completion_tokens": 125,
+      "cost_usd": 0.002223625858554917,
+      "prompt_tokens": 238,
+      "query_id": "18",
+      "request_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z-10-17c4f6935b534ff791738d0cdff387a4"
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z"
+}

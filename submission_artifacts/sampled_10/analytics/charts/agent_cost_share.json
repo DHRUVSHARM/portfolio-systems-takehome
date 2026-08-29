@@ -1,0 +1,30 @@
+{
+  "agents": [
+    {
+      "agent": "AdvisorAgent",
+      "cost_percentage": 45.0,
+      "cost_usd": 0.016791807500000002
+    },
+    {
+      "agent": "MetricsAgent",
+      "cost_percentage": 15.74135587075724,
+      "cost_usd": 0.005873907057127789
+    },
+    {
+      "agent": "PriceAgent",
+      "cost_percentage": 13.449630670231565,
+      "cost_usd": 0.0050187468702360995
+    },
+    {
+      "agent": "RiskAgent",
+      "cost_percentage": 5.809013459011191,
+      "cost_usd": 0.002167640794858335
+    },
+    {
+      "agent": "overhead_unallocated",
+      "cost_percentage": 20.0,
+      "cost_usd": 0.007463025555555557
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_INTEGRATION-20260828T205107Z"
+}

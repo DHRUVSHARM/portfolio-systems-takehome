@@ -1,0 +1,189 @@
+{
+  "groups": [
+    {
+      "agent": "Admission",
+      "calls": 100,
+      "cpu_time_ms": 5.688,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 100,
+        "iqr": 0.011249999999999996,
+        "max": 0.47,
+        "mean": 0.05688,
+        "median": 0.047,
+        "min": 0.02,
+        "p50": 0.047,
+        "p75": 0.05325,
+        "p90": 0.06860000000000015,
+        "p95": 0.10624999999999998,
+        "p99": 0.2175500000000013,
+        "stddev": 0.04883058058225398
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z",
+      "tool": null,
+      "wall_time_ms": 5.688
+    },
+    {
+      "agent": "AdvisorAgent",
+      "calls": 100,
+      "cpu_time_ms": 2548307.173,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 100,
+        "iqr": 8476.162250000001,
+        "max": 51545.778,
+        "mean": 25483.07173,
+        "median": 24997.1925,
+        "min": 14039.802,
+        "p50": 24997.1925,
+        "p75": 28836.655000000002,
+        "p90": 34842.9834,
+        "p95": 36679.41025,
+        "p99": 41816.775750000044,
+        "stddev": 6643.438964898371
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z",
+      "tool": null,
+      "wall_time_ms": 2548307.173
+    },
+    {
+      "agent": "MetricsAgent",
+      "calls": 323,
+      "cpu_time_ms": 1146.906,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 323,
+        "iqr": 1.532,
+        "max": 39.412,
+        "mean": 3.5507925696594427,
+        "median": 1.82,
+        "min": 0.258,
+        "p50": 1.82,
+        "p75": 2.609,
+        "p90": 8.265800000000002,
+        "p95": 17.51309999999996,
+        "p99": 36.44403999999997,
+        "stddev": 6.11170554578138
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z",
+      "tool": null,
+      "wall_time_ms": 1146.906
+    },
+    {
+      "agent": "Portfolio",
+      "calls": 200,
+      "cpu_time_ms": 5100731.506,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 200,
+        "iqr": 8493.361,
+        "max": 51576.244,
+        "mean": 25503.65753,
+        "median": 25032.815000000002,
+        "min": 14045.375,
+        "p50": 25032.815000000002,
+        "p75": 28880.3665,
+        "p90": 34867.7878,
+        "p95": 36699.0828,
+        "p99": 41921.17228999991,
+        "stddev": 6648.697965090171
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z",
+      "tool": null,
+      "wall_time_ms": 5100731.506
+    },
+    {
+      "agent": "PriceAgent",
+      "calls": 323,
+      "cpu_time_ms": 588.033,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 323,
+        "iqr": 0.7115000000000001,
+        "max": 34.411,
+        "mean": 1.8205356037151703,
+        "median": 0.923,
+        "min": 0.092,
+        "p50": 0.923,
+        "p75": 1.2425000000000002,
+        "p90": 2.7222000000000053,
+        "p95": 7.515999999999993,
+        "p99": 21.30825999999991,
+        "stddev": 3.84077209582605
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z",
+      "tool": "get_history",
+      "wall_time_ms": 588.033
+    },
+    {
+      "agent": "RiskAgent",
+      "calls": 100,
+      "cpu_time_ms": 284.776,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 100,
+        "iqr": 2.697,
+        "max": 31.581,
+        "mean": 2.84776,
+        "median": 1.1219999999999999,
+        "min": 0.084,
+        "p50": 1.1219999999999999,
+        "p75": 3.13375,
+        "p90": 5.680500000000002,
+        "p95": 9.265649999999994,
+        "p99": 24.682680000000037,
+        "stddev": 4.706296735481094
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z",
+      "tool": null,
+      "wall_time_ms": 284.776
+    },
+    {
+      "agent": "Unknown",
+      "calls": 200,
+      "cpu_time_ms": 5100967.571,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 200,
+        "iqr": 8492.931499999999,
+        "max": 51577.973,
+        "mean": 25504.837855,
+        "median": 25034.052499999998,
+        "min": 14046.047,
+        "p50": 25034.052499999998,
+        "p75": 28881.405,
+        "p90": 34869.1152,
+        "p95": 36701.98239999999,
+        "p99": 41922.714819999914,
+        "stddev": 6648.6431473493785
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z",
+      "tool": null,
+      "wall_time_ms": 5100967.571
+    },
+    {
+      "agent": "Validation",
+      "calls": 100,
+      "cpu_time_ms": 5.816,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 100,
+        "iqr": 0.019250000000000003,
+        "max": 0.47,
+        "mean": 0.058159999999999996,
+        "median": 0.045,
+        "min": 0.02,
+        "p50": 0.045,
+        "p75": 0.05725,
+        "p90": 0.09620000000000002,
+        "p95": 0.1291,
+        "p99": 0.1779500000000015,
+        "stddev": 0.04941957506899467
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z",
+      "tool": null,
+      "wall_time_ms": 5.816
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z"
+}
