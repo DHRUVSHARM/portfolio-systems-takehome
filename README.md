@@ -1,5 +1,27 @@
 # Portfolio Systems Take-Home
 
+## Submission Deliverables
+
+| Deliverable | Location | What it shows |
+| --- | --- | --- |
+| Loom 1 | https://www.loom.com/share/09aa634896924681a12b7d8f8015b522 | Experiment run, collected data, live observability, Grafana, Jaeger, and benchmark output |
+| Loom 2 | https://www.loom.com/share/cfeac9f3be104d09a5ee32ab0db3d379 | Generated analytics report, cost model, metric meaning, Jaeger drilldown, and how the CPU demo cost model maps to a real GPU deployment |
+| **Verified 100-query artifact bundle** | [submission_artifacts/canonical_100_c2/](submission_artifacts/canonical_100_c2/) | Primary submission evidence: `canonical_100`, concurrency 2, 100/100 successful |
+| **100-query static report** | [report/index.html](submission_artifacts/canonical_100_c2/analytics/report/index.html) | Frozen reviewer-facing analytics and charts for the verified 100-query run |
+| **100-query raw API responses** | [requests.jsonl](submission_artifacts/canonical_100_c2/raw/requests.jsonl) | Actual Gateway responses, including model-generated Advisor output |
+| **100-query derived metrics** | [metrics.json](submission_artifacts/canonical_100_c2/analytics/metrics.json) | Cost, latency, success, agent, inference, and serving metrics |
+| 10-query integration artifacts | [submission_artifacts/sampled_10/](submission_artifacts/sampled_10/) | 10/10 successful rehearsal of benchmark -> telemetry -> analytics -> report |
+| Single-request validation | [submission_artifacts/single_request/](submission_artifacts/single_request/) | Fixed request/run/query IDs and live end-to-end validation scope |
+| Successful experiment record | [docs/experiment_results.md](docs/experiment_results.md) | Verified single-request, 10-query, and 100-query CPU evidence |
+| Architecture overview | [docs/architecture/overview.md](docs/architecture/overview.md) | Main request path and component boundaries |
+| Metrics reference | [docs/metrics_reference.md](docs/metrics_reference.md) | What each metric measures, why it matters operationally, source, scope, and caveats |
+| Cost methodology | [docs/cost_methodology.md](docs/cost_methodology.md) | Cost pools, token weighting, overhead, attribution, and assumptions |
+| Tradeoffs and future work | [docs/tradeoffs_and_future_work.md](docs/tradeoffs_and_future_work.md) | Design choices, CPU/GPU limitations, timeout considerations, and next experiments |
+| Demo diagrams | [docs/demo1_diagrams.md](docs/demo1_diagrams.md) | Mermaid diagrams used to explain the system and observability flow |
+| Experiment scripts | [deploy/experiments/phase9_observability_demo.sh](deploy/experiments/phase9_observability_demo.sh) | Commands for single-request, 10-query, and verified 100-query CPU runs |
+
+**Recommended reviewer path:** Loom demos -> verified 100-query report and raw responses -> experiment results -> metrics/cost methodology -> architecture and tradeoffs.
+
 This repository turns the supplied multi-agent portfolio workflow into a
 reviewable serving and benchmarking system. It adds a Gateway, Portfolio API,
 OpenAI-compatible Advisor inference through vLLM/Qwen, live observability,
@@ -13,28 +35,8 @@ Two environments are intentionally distinct:
 | CPU demo | `Qwen/Qwen3-0.6B` on local CPU | Noncanonical integration rehearsal, observability demo, and artifact validation |
 | Canonical GPU target | `Qwen/Qwen3-4B-Instruct-2507` on single-GPU vLLM BF16 | Intended assignment benchmark path with real provider cost and DCGM GPU telemetry |
 
-The CPU results below are useful evidence that the full system works end to
+The committed CPU artifacts demonstrate that the complete system works end to
 end. They are not GPU performance claims.
-
-## Submission Deliverables
-
-| Deliverable | Location | What it shows |
-| --- | --- | --- |
-| Loom 1 | https://www.loom.com/share/09aa634896924681a12b7d8f8015b522 | Successful experiment run, collected data, live observability, Grafana, Jaeger, and benchmark output |
-| Loom 2 | https://www.loom.com/share/cfeac9f3be104d09a5ee32ab0db3d379 | Generated analytics report, cost model, metric meaning, Jaeger drilldown, and replacing CPU demo cost with real GPU cost |
-| Architecture overview | [docs/architecture/overview.md](docs/architecture/overview.md) | Main request path and component boundaries |
-| Successful experiments | [docs/experiment_results.md](docs/experiment_results.md) | Verified single-request, 10-query, and 100-query CPU evidence |
-| Metrics reference | [docs/metrics_reference.md](docs/metrics_reference.md) | What each metric means, why it matters operationally, where it comes from, and where it is stored |
-| Cost methodology | [docs/cost_methodology.md](docs/cost_methodology.md) | Cost pools, token weighting, overhead, and attribution rules |
-| Tradeoffs and future work | [docs/tradeoffs_and_future_work.md](docs/tradeoffs_and_future_work.md) | Design choices, hardware/timeout limitations, and realistic next experiments |
-| Demo diagrams | [docs/demo1_diagrams.md](docs/demo1_diagrams.md) | GitHub Mermaid diagrams used in the recorded demos |
-| Experiment scripts | [deploy/experiments/phase9_observability_demo.sh](deploy/experiments/phase9_observability_demo.sh) | CPU demo commands for single request, 10-query, and verified 100-query baseline |
-| Raw API responses | `results/phase8/raw/<RUN_ID>/requests.jsonl` | Actual Gateway responses, including generated Advisor output |
-| Telemetry artifacts | `results/phase8/telemetry/<RUN_ID>/` | Frozen Jaeger and Prometheus exports |
-| Analytics artifacts | `results/phase8/analytics/<RUN_ID>/` | Parquet, JSON, CSV, chart data, and generated report |
-| Static HTML report | `results/phase8/analytics/<RUN_ID>/report/index.html` | Reviewer-facing frozen report for one run |
-| Grafana | `http://localhost:3000` | Live dashboards and historical PostgreSQL dashboard |
-| Jaeger | `http://localhost:16686` | Individual request trace drilldown |
 
 ## What Was Implemented
 
@@ -115,11 +117,11 @@ Mental model: raw data is what happened, telemetry is how it executed, and analy
 
 See [docs/experiment_results.md](docs/experiment_results.md) for the canonical record.
 
-| Run | Dataset | Concurrency | Result | Purpose |
+| Run | Dataset | Concurrency | Result | Committed evidence |
 | --- | --- | --- | --- | --- |
-| `NONCANONICAL_CPU_INTEGRATION_SINGLE` | one request | 1 | completed manually | Workflow, trace propagation, and generated Advisor response validation |
-| `NONCANONICAL_CPU_INTEGRATION-20260828T205107Z` | `sampled_10`, seed 81 | 2 | 10/10 successful | Full benchmark -> telemetry -> analytics -> report rehearsal |
-| `NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z` | `canonical_100` | 2 | 100/100 successful | Required 100-query CPU baseline evidence |
+| `NONCANONICAL_CPU_INTEGRATION_SINGLE` | one request | 1 | completed manually | [single_request](submission_artifacts/single_request/) |
+| `NONCANONICAL_CPU_INTEGRATION-20260828T205107Z` | `sampled_10`, seed 81 | 2 | 10/10 successful | [sampled_10](submission_artifacts/sampled_10/) |
+| `NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z` | `canonical_100` | 2 | **100/100 successful** | [canonical_100_c2](submission_artifacts/canonical_100_c2/) |
 
 The submission intentionally uses the verified C2 100-query run as the CPU
 baseline. The local CPU environment is for integration and observability, not
@@ -172,30 +174,49 @@ load. The verified submission result therefore uses concurrency 2, where the
 100-query workload completes cleanly. Capacity and saturation testing belongs on
 the canonical GPU path with production-like timeout and admission settings.
 
-## Where Results Live
+## Committed Submission Evidence
+
+The repository includes frozen evidence for the successful runs under
+[`submission_artifacts/`](submission_artifacts/). The primary reviewer bundle is:
 
 ```text
-results/phase8/raw/<RUN_ID>/
-results/phase8/telemetry/<RUN_ID>/
-results/phase8/analytics/<RUN_ID>/
+submission_artifacts/canonical_100_c2/
+├── README.md
+├── raw/
+│   ├── requests.jsonl
+│   ├── resolved_benchmark_config.yaml
+│   └── run.json
+├── telemetry/
+│   ├── *_jaeger_traces.json
+│   └── *_prometheus_samples.json
+└── analytics/
+    ├── metrics.json
+    ├── report.json
+    ├── provenance.json
+    ├── serving_telemetry.json
+    ├── summary.csv
+    ├── *.parquet
+    ├── charts/
+    └── report/index.html
 ```
 
-Important files:
-
-- Raw: `run.json`, `requests.jsonl`, resolved benchmark configuration.
-- Telemetry: frozen Jaeger traces and Prometheus samples.
-- Analytics: `run.json`, `provenance.json`, `metrics.json`, `report.json`, `summary.csv`, `serving_telemetry.json`, Parquet tables, `charts/`, `report/index.html`, and `report/assets/`.
-
-`requests.jsonl` contains actual API responses, including generated Advisor output. `metrics.json` contains derived metrics. Parquet contains detailed machine-readable historical analytics. `report/index.html` is the portable reviewer-facing report.
+These files are committed so the verified run can be inspected without rerunning
+the local stack. New experiments continue to write their complete working
+artifacts under the ignored local `results/phase8/` tree.
 
 ## Viewing Actual Generated Advice
+
+The committed 100-query response file is:
+
+[`submission_artifacts/canonical_100_c2/raw/requests.jsonl`](submission_artifacts/canonical_100_c2/raw/requests.jsonl)
+
+For example:
 
 ```python
 import json
 from pathlib import Path
 
-run_id = "NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z"
-path = Path("results/phase8/raw") / run_id / "requests.jsonl"
+path = Path("submission_artifacts/canonical_100_c2/raw/requests.jsonl")
 
 for line in path.read_text().splitlines():
     row = json.loads(line)
@@ -205,6 +226,8 @@ for line in path.read_text().splitlines():
 ```
 
 ## Live Interfaces
+
+When the local stack is running:
 
 - Grafana: `http://localhost:3000`
 - Jaeger: `http://localhost:16686`
