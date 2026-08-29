@@ -2,8 +2,8 @@
 
 This walkthrough is for the noncanonical CPU rehearsal. It uses
 `Qwen/Qwen3-0.6B`, synthetic/reference CPU cost, and local Docker Compose. The
-canonical GPU benchmark path remains unchanged and should be run later on the
-GPU host.
+canonical GPU benchmark path remains unchanged and should be run on the target
+GPU host for production-like serving measurements.
 
 ## Start The Stack
 
@@ -76,21 +76,20 @@ watch:
 
 ## 100-Query CPU Baseline
 
-Run the verified baseline shape:
+Run the verified submission baseline:
 
 ```bash
 deploy/experiments/phase9_observability_demo.sh run_100 2
 ```
 
-For deliberate local concurrency exploration, the wrapper also accepts:
-
-```bash
-deploy/experiments/phase9_observability_demo.sh run_100 16
-```
-
 The submission evidence uses the successful C2 artifact documented in
-[experiment_results.md](experiment_results.md). Do not use the failed CPU
-full_1000/C100 stress attempt as final evidence.
+[experiment_results.md](experiment_results.md).
+
+The local CPU path is intended for integration and observability validation,
+not saturation testing. CPU model execution is slow relative to the target GPU,
+and higher offered load must coordinate benchmark, Gateway downstream, and
+Portfolio inference timeout budgets. Capacity characterization is therefore
+left to the canonical GPU environment.
 
 ## Collect Or Re-render
 
@@ -136,7 +135,7 @@ links, so the report remains portable when copied with the run directory.
 | Artifact | Purpose |
 | --- | --- |
 | `results/phase8/raw/<RUN_ID>/run.json` | benchmark run metadata and request observations |
-| `results/phase8/raw/<RUN_ID>/observations.jsonl` | raw per-request benchmark observations |
+| `results/phase8/raw/<RUN_ID>/requests.jsonl` | raw per-request benchmark observations and API response bodies |
 | `results/phase8/telemetry/<RUN_ID>/*_jaeger_traces.json` | frozen trace export |
 | `results/phase8/telemetry/<RUN_ID>/*_prometheus_samples.json` | frozen Prometheus range export |
 | `results/phase8/analytics/<RUN_ID>/requests.parquet` | canonical request observations |
@@ -145,7 +144,7 @@ links, so the report remains portable when copied with the run directory.
 | `results/phase8/analytics/<RUN_ID>/resource_samples.parquet` | host/container/vLLM/GPU telemetry samples |
 | `results/phase8/analytics/<RUN_ID>/request_cost_attributions.parquet` | exact cost per request |
 | `results/phase8/analytics/<RUN_ID>/agent_cost_attributions.parquet` | agent cost share plus `overhead_unallocated` |
-| `results/phase8/analytics/<RUN_ID>/metrics.json` | recalculated assignment metrics |
+| `results/phase8/analytics/<RUN_ID>/metrics.json` | recalculated metrics |
 | `results/phase8/analytics/<RUN_ID>/report.json` | compact run summary |
 | `results/phase8/analytics/<RUN_ID>/serving_telemetry.json` | aggregate vLLM/GPU serving summary |
 | `results/phase8/analytics/<RUN_ID>/report/index.html` | reviewer-facing portable report |
