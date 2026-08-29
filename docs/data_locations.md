@@ -40,7 +40,32 @@ Companion docs:
 | Run provenance | Live not applicable | HTML report -> Provenance | `provenance.json`, `run.json` |
 | Machine/hardware profile | Grafana -> Resources | HTML report -> Provenance | `provenance.json`, `resource_samples.parquet` |
 
-Successful CPU demo artifacts use:
+## Committed Submission Evidence
+
+The successful submission snapshots are committed under:
+
+```text
+submission_artifacts/single_request/
+submission_artifacts/sampled_10/
+submission_artifacts/canonical_100_c2/
+```
+
+The primary 100-query evidence is:
+
+- [artifact bundle](../submission_artifacts/canonical_100_c2/)
+- [actual API responses](../submission_artifacts/canonical_100_c2/raw/requests.jsonl)
+- [derived metrics](../submission_artifacts/canonical_100_c2/analytics/metrics.json)
+- [serving telemetry](../submission_artifacts/canonical_100_c2/analytics/serving_telemetry.json)
+- [frozen Jaeger/Prometheus telemetry](../submission_artifacts/canonical_100_c2/telemetry/)
+- [static report](../submission_artifacts/canonical_100_c2/analytics/report/index.html)
+
+These committed artifacts are intended for reviewer inspection without rerunning
+the stack.
+
+## Regenerated Local Results
+
+New experiment runs continue to write working artifacts under the ignored local
+results tree:
 
 ```text
 results/phase8/raw/<RUN_ID>/
@@ -48,6 +73,6 @@ results/phase8/telemetry/<RUN_ID>/
 results/phase8/analytics/<RUN_ID>/
 ```
 
-`requests.jsonl` contains the actual API responses, including generated
-Advisor summaries. The CPU demo may show GPU/DCGM rows as unavailable; that is
-expected and is distinct from a measured zero.
+`requests.jsonl` contains the actual API responses, including generated Advisor
+summaries. The CPU demo may show GPU/DCGM rows as unavailable; that is expected
+and is distinct from a measured zero.
