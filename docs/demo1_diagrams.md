@@ -1,6 +1,6 @@
 # Demo 1 Diagrams: Observability Walkthrough
 
-Use this file as the visual reference during Loom Demo 1.
+Use this file as the visual reference for the recorded observability walkthrough.
 
 ## Diagram 1: End-to-End Request Architecture
 
@@ -151,7 +151,7 @@ Important caveat:
 
 ```mermaid
 flowchart TD
-    A[100 Benchmark Queries] --> B[Configurable Client Concurrency]
+    A[Benchmark Queries] --> B[Bounded Client Concurrency]
     B --> C[Requests In Flight]
     C --> D[Gateway]
     D --> E[Portfolio API]
@@ -179,19 +179,16 @@ Metrics to watch:
 - Success rate
 - p95 latency
 
+The verified CPU submission baseline uses concurrency 2. Higher-load capacity
+experiments should be performed on the canonical GPU environment with benchmark,
+Gateway, inference timeout, and admission budgets calibrated together.
+
 ## Quick Demo Commands
 
-Run the verified 100-query CPU baseline shape:
+Run the verified 100-query CPU baseline:
 
 ```bash
 deploy/experiments/phase9_observability_demo.sh run_100 2
-```
-
-Run a higher-concurrency 100-query rehearsal only when intentionally exploring
-local CPU saturation:
-
-```bash
-deploy/experiments/phase9_observability_demo.sh run_100 16
 ```
 
 Grafana:
