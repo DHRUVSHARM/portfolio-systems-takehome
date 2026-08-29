@@ -1,0 +1,189 @@
+{
+  "groups": [
+    {
+      "agent": "Admission",
+      "calls": 101,
+      "cpu_time_ms": 5.886,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 101,
+        "iqr": 0.011000000000000003,
+        "max": 0.394,
+        "mean": 0.05827722772277228,
+        "median": 0.05,
+        "min": 0.027,
+        "p50": 0.05,
+        "p75": 0.056,
+        "p90": 0.071,
+        "p95": 0.111,
+        "p99": 0.176,
+        "stddev": 0.03975422483604075
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z",
+      "tool": null,
+      "wall_time_ms": 5.886
+    },
+    {
+      "agent": "AdvisorAgent",
+      "calls": 101,
+      "cpu_time_ms": 2721729.432,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 101,
+        "iqr": 6191.898000000001,
+        "max": 53653.164,
+        "mean": 26947.81615841584,
+        "median": 26399.573,
+        "min": 12584.245,
+        "p50": 26399.573,
+        "p75": 29440.854,
+        "p90": 36011.186,
+        "p95": 40530.396,
+        "p99": 44888.338,
+        "stddev": 6956.167000686673
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z",
+      "tool": null,
+      "wall_time_ms": 2721729.432
+    },
+    {
+      "agent": "MetricsAgent",
+      "calls": 326,
+      "cpu_time_ms": 1055.771,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 326,
+        "iqr": 1.45875,
+        "max": 53.629,
+        "mean": 3.2385613496932515,
+        "median": 1.9369999999999998,
+        "min": 0.32,
+        "p50": 1.9369999999999998,
+        "p75": 2.53025,
+        "p90": 5.268,
+        "p95": 14.3135,
+        "p99": 25.143749999999997,
+        "stddev": 5.2924494753082145
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z",
+      "tool": null,
+      "wall_time_ms": 1055.771
+    },
+    {
+      "agent": "Portfolio",
+      "calls": 202,
+      "cpu_time_ms": 5447871.948,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 202,
+        "iqr": 6196.147499999999,
+        "max": 53694.557,
+        "mean": 26969.66310891089,
+        "median": 26410.023500000003,
+        "min": 12593.192,
+        "p50": 26410.023500000003,
+        "p75": 29453.879249999998,
+        "p90": 36046.427800000005,
+        "p95": 40550.420450000005,
+        "p99": 44997.42831,
+        "stddev": 6963.219027408271
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z",
+      "tool": null,
+      "wall_time_ms": 5447871.948
+    },
+    {
+      "agent": "PriceAgent",
+      "calls": 326,
+      "cpu_time_ms": 507.096,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 326,
+        "iqr": 0.7969999999999999,
+        "max": 25.095,
+        "mean": 1.5555092024539878,
+        "median": 0.95,
+        "min": 0.144,
+        "p50": 0.95,
+        "p75": 1.31425,
+        "p90": 2.3565,
+        "p95": 4.64175,
+        "p99": 12.26175,
+        "stddev": 2.582404178655978
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z",
+      "tool": "get_history",
+      "wall_time_ms": 507.096
+    },
+    {
+      "agent": "RiskAgent",
+      "calls": 101,
+      "cpu_time_ms": 302.431,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 101,
+        "iqr": 2.9120000000000004,
+        "max": 33.429,
+        "mean": 2.994366336633663,
+        "median": 1.436,
+        "min": 0.162,
+        "p50": 1.436,
+        "p75": 3.353,
+        "p90": 6.112,
+        "p95": 9.129,
+        "p99": 25.264,
+        "stddev": 4.931460072833997
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z",
+      "tool": null,
+      "wall_time_ms": 302.431
+    },
+    {
+      "agent": "Unknown",
+      "calls": 202,
+      "cpu_time_ms": 5448107.885,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 202,
+        "iqr": 6196.913250000001,
+        "max": 53696.39,
+        "mean": 26970.831113861386,
+        "median": 26411.823,
+        "min": 12593.926,
+        "p50": 26411.823,
+        "p75": 29455.321,
+        "p90": 36047.4294,
+        "p95": 40551.82965,
+        "p99": 44998.96489,
+        "stddev": 6963.26088255028
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z",
+      "tool": null,
+      "wall_time_ms": 5448107.885
+    },
+    {
+      "agent": "Validation",
+      "calls": 101,
+      "cpu_time_ms": 5.531,
+      "failures": 0,
+      "latency_distribution_ms": {
+        "count": 101,
+        "iqr": 0.010999999999999996,
+        "max": 0.219,
+        "mean": 0.05476237623762376,
+        "median": 0.048,
+        "min": 0.026,
+        "p50": 0.048,
+        "p75": 0.053,
+        "p90": 0.083,
+        "p95": 0.101,
+        "p99": 0.179,
+        "stddev": 0.028582397309142093
+      },
+      "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z",
+      "tool": null,
+      "wall_time_ms": 5.531
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z"
+}

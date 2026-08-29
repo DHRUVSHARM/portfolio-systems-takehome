@@ -1,0 +1,41 @@
+{
+  "groups": [
+    {
+      "average_completion_tokens": 115.54838709677419,
+      "average_prompt_tokens": 270.61290322580646,
+      "count": 31,
+      "group": "equal",
+      "mean_cost_per_query_usd": 0.003692426053702247,
+      "mean_latency_ms": 28306.732865453196,
+      "median_cost_per_query_usd": 0.0029600505010044754,
+      "p95_cost_per_query_usd": 0.005785449337996221,
+      "p95_latency_ms": 44612.17345249315,
+      "success_rate": 1.0
+    },
+    {
+      "average_completion_tokens": 125.21621621621621,
+      "average_prompt_tokens": 241.0,
+      "count": 37,
+      "group": "percent",
+      "mean_cost_per_query_usd": 0.0036847931739766335,
+      "mean_latency_ms": 28179.004005405808,
+      "median_cost_per_query_usd": 0.003056130618089154,
+      "p95_cost_per_query_usd": 0.007109920319234666,
+      "p95_latency_ms": 35916.10825099632,
+      "success_rate": 1.0
+    },
+    {
+      "average_completion_tokens": 121.0625,
+      "average_prompt_tokens": 271.3125,
+      "count": 32,
+      "group": "unweighted",
+      "mean_cost_per_query_usd": 0.003904419606190466,
+      "mean_latency_ms": 29162.474592156286,
+      "median_cost_per_query_usd": 0.003330656648528315,
+      "p95_cost_per_query_usd": 0.0059306295384157146,
+      "p95_latency_ms": 41319.11179681774,
+      "success_rate": 1.0
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z"
+}

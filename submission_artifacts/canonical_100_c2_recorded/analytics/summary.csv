@@ -1,0 +1,2 @@
+run_id,request_count,success_count,failure_count,total_run_cost_usd,request_cost_sum_usd
+NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z,100,100,0,0.3757439825,0.3757439825

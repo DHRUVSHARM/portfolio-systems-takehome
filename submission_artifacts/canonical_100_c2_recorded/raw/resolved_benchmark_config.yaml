@@ -1,0 +1,10 @@
+dataset_mode: "canonical_100"
+concurrency: 2
+gateway_base_url: "http://gateway:8000"
+request_timeout_seconds: 300.0
+sample_size: null
+sample_seed: 1
+run_id: "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z"
+run_name: "NONCANONICAL_CPU_CANONICAL_100_C2"
+output_root: "/results/phase8/raw"
+write_artifacts: true

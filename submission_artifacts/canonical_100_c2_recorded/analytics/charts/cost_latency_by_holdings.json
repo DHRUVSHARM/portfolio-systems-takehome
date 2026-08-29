@@ -1,0 +1,705 @@
+{
+  "points": [
+    {
+      "cost_usd": 0.003056441476268369,
+      "latency_ms": 37619.4297389884,
+      "n_holdings": 1,
+      "query_id": "21",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-1-4f19d12e9ca8448eac77ded6dcb014d5"
+    },
+    {
+      "cost_usd": 0.002243482737598408,
+      "latency_ms": 31511.383704986656,
+      "n_holdings": 1,
+      "query_id": "17",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-2-67ebc0f4d0d14676a769b63dfe27143f"
+    },
+    {
+      "cost_usd": 0.002151384124570943,
+      "latency_ms": 25206.484860013006,
+      "n_holdings": 1,
+      "query_id": "98",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-3-a0b31dae66304a9d80d173277ebd747a"
+    },
+    {
+      "cost_usd": 0.0025583778921447285,
+      "latency_ms": 27691.539576015202,
+      "n_holdings": 1,
+      "query_id": "123",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-4-08fd2556f68a45efb6243b61c884a651"
+    },
+    {
+      "cost_usd": 0.002154535251663818,
+      "latency_ms": 26662.002424011007,
+      "n_holdings": 1,
+      "query_id": "639",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-5-5b91e3aede1446d5a97abf546324644b"
+    },
+    {
+      "cost_usd": 0.00183760366077709,
+      "latency_ms": 23807.533101004083,
+      "n_holdings": 1,
+      "query_id": "625",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-6-0cc705e439fd4d15951455f0fe6cbb80"
+    },
+    {
+      "cost_usd": 0.0019962699482857183,
+      "latency_ms": 25492.786971008172,
+      "n_holdings": 1,
+      "query_id": "100",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-7-fd12b360e09547b0a23cc0572f983b67"
+    },
+    {
+      "cost_usd": 0.002314767450642116,
+      "latency_ms": 28023.66832998814,
+      "n_holdings": 1,
+      "query_id": "543",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-8-ec43d75c55024b4fb7ac5fb5b34e7c0d"
+    },
+    {
+      "cost_usd": 0.0021358188688282618,
+      "latency_ms": 23253.948728000978,
+      "n_holdings": 1,
+      "query_id": "82",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-9-f6a3419aeaa8419dae44bfc6ec52ecd0"
+    },
+    {
+      "cost_usd": 0.001973703940329215,
+      "latency_ms": 24492.803302011453,
+      "n_holdings": 1,
+      "query_id": "125",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-10-37eb23d8bca543fa90ee10fa61764c5b"
+    },
+    {
+      "cost_usd": 0.0022561158790549065,
+      "latency_ms": 25489.79703299119,
+      "n_holdings": 1,
+      "query_id": "621",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-11-e60212507b4e4344bbde9b9cb781cadc"
+    },
+    {
+      "cost_usd": 0.0021864760809215686,
+      "latency_ms": 25655.22910800064,
+      "n_holdings": 1,
+      "query_id": "790",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-12-2d4ae1377f6544c8b0e340a3b426cd4b"
+    },
+    {
+      "cost_usd": 0.0023151083861197227,
+      "latency_ms": 25693.857881997246,
+      "n_holdings": 1,
+      "query_id": "412",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-13-f4c48bae43194d749784d43e6feba22f"
+    },
+    {
+      "cost_usd": 0.0027341007449921055,
+      "latency_ms": 31522.13140099775,
+      "n_holdings": 2,
+      "query_id": "30",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-14-f5020c0994e2448c86ff1f08a77103d1"
+    },
+    {
+      "cost_usd": 0.002769674895759238,
+      "latency_ms": 30281.380423984956,
+      "n_holdings": 2,
+      "query_id": "7",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-15-dbbc1f271c5b4da58740e1e77e1459b6"
+    },
+    {
+      "cost_usd": 0.003056130618089154,
+      "latency_ms": 28619.389033992775,
+      "n_holdings": 2,
+      "query_id": "71",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-16-2f3017982a24445aa29f69d98f132876"
+    },
+    {
+      "cost_usd": 0.005469595817738388,
+      "latency_ms": 26879.226582997944,
+      "n_holdings": 2,
+      "query_id": "16",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-17-75a9255ba84f42818abfffedb21fa189"
+    },
+    {
+      "cost_usd": 0.002671895553513471,
+      "latency_ms": 26507.32913700631,
+      "n_holdings": 2,
+      "query_id": "12",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-18-77d5e177ed2047938eae5745f49c8a38"
+    },
+    {
+      "cost_usd": 0.002187080892155794,
+      "latency_ms": 23584.005641983822,
+      "n_holdings": 2,
+      "query_id": "24",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-19-c40b1e9b4bba42bfafdf8c4b4050eb9c"
+    },
+    {
+      "cost_usd": 0.0025965818736721595,
+      "latency_ms": 24935.82650402095,
+      "n_holdings": 2,
+      "query_id": "6",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-20-60e42045bb134547ac975b1fb4d595ee"
+    },
+    {
+      "cost_usd": 0.002416208904477953,
+      "latency_ms": 20931.975565006724,
+      "n_holdings": 2,
+      "query_id": "32",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-21-7260a65842c44b2fbef63f61c06d4dd0"
+    },
+    {
+      "cost_usd": 0.002775940550908286,
+      "latency_ms": 22692.46593498974,
+      "n_holdings": 2,
+      "query_id": "89",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-22-37ded1384df84564a4f05b3d1dda667a"
+    },
+    {
+      "cost_usd": 0.002937340386729032,
+      "latency_ms": 23649.260728008812,
+      "n_holdings": 2,
+      "query_id": "722",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-23-a0d70a3d0aa8493a95c9d8c64e2bc9f7"
+    },
+    {
+      "cost_usd": 0.0024273141906398436,
+      "latency_ms": 25856.50667300797,
+      "n_holdings": 2,
+      "query_id": "15",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-24-6f26a42c9c5a4c278dad3393aa5c5e3a"
+    },
+    {
+      "cost_usd": 0.0024802985282894744,
+      "latency_ms": 26755.39563599159,
+      "n_holdings": 2,
+      "query_id": "247",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-25-fd4d179452044577bf9929c4e76649ae"
+    },
+    {
+      "cost_usd": 0.0025319675329746366,
+      "latency_ms": 23469.398882007226,
+      "n_holdings": 2,
+      "query_id": "175",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-26-c53daaf6e384450ba315e43e330b9c26"
+    },
+    {
+      "cost_usd": 0.005353578826058576,
+      "latency_ms": 26684.745442005806,
+      "n_holdings": 2,
+      "query_id": "14",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-27-90f803f825a148118f5fe3dad3cab1c3"
+    },
+    {
+      "cost_usd": 0.002997519770474896,
+      "latency_ms": 28651.666458987165,
+      "n_holdings": 2,
+      "query_id": "974",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-28-17b7ab76351348bcbf328270b5800cfe"
+    },
+    {
+      "cost_usd": 0.0023189539490978406,
+      "latency_ms": 24872.86737500108,
+      "n_holdings": 3,
+      "query_id": "8",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-29-8414e4b0b1744df4b388a0d284c3a465"
+    },
+    {
+      "cost_usd": 0.0034449841181383415,
+      "latency_ms": 33689.02392900782,
+      "n_holdings": 3,
+      "query_id": "23",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-30-c8f37f4f75e54f33bd8d8b4db2943a80"
+    },
+    {
+      "cost_usd": 0.0027497291435248524,
+      "latency_ms": 18192.41024699295,
+      "n_holdings": 3,
+      "query_id": "52",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-31-d8ffa5e56f1549df81a11866a853faa4"
+    },
+    {
+      "cost_usd": 0.007358830381988759,
+      "latency_ms": 30631.798399001127,
+      "n_holdings": 3,
+      "query_id": "3",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-32-e904416d2d8f4da68d03780d388496ea"
+    },
+    {
+      "cost_usd": 0.0035242968296369873,
+      "latency_ms": 30927.078283013543,
+      "n_holdings": 3,
+      "query_id": "51",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-33-d7a12d7d17724560a7fb889d8e231894"
+    },
+    {
+      "cost_usd": 0.002379410861747042,
+      "latency_ms": 23365.846347995102,
+      "n_holdings": 3,
+      "query_id": "40",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-34-609c9b32293b409082eb01088f3e0a8f"
+    },
+    {
+      "cost_usd": 0.002795872268366688,
+      "latency_ms": 26065.058367996244,
+      "n_holdings": 3,
+      "query_id": "57",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-35-fa6b235d6f6b43f79b8c18303285e835"
+    },
+    {
+      "cost_usd": 0.003047684093538471,
+      "latency_ms": 25842.998092994094,
+      "n_holdings": 3,
+      "query_id": "369",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-36-06aedc3eb64d4568b448c03b1371b6aa"
+    },
+    {
+      "cost_usd": 0.005023430186971757,
+      "latency_ms": 30930.889096023748,
+      "n_holdings": 3,
+      "query_id": "103",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-37-b29e56a3a8654605a3e06fd11df76753"
+    },
+    {
+      "cost_usd": 0.0030128561432401293,
+      "latency_ms": 24396.502052026335,
+      "n_holdings": 3,
+      "query_id": "425",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-38-801aa3d4f2e7463087c6514dc3a686ee"
+    },
+    {
+      "cost_usd": 0.002600313957643369,
+      "latency_ms": 26066.697889007628,
+      "n_holdings": 3,
+      "query_id": "28",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-39-4c8c01c0e5a74ffc8a1f94abc685fec1"
+    },
+    {
+      "cost_usd": 0.004850853000792613,
+      "latency_ms": 26150.81906298292,
+      "n_holdings": 3,
+      "query_id": "75",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-40-4a5d3d058b424c119108a3302c7eae86"
+    },
+    {
+      "cost_usd": 0.0033906025078333938,
+      "latency_ms": 29263.048149994574,
+      "n_holdings": 3,
+      "query_id": "251",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-41-faa86eadd1fe486d9c9cd53df6017539"
+    },
+    {
+      "cost_usd": 0.004037691437418066,
+      "latency_ms": 30791.05442200671,
+      "n_holdings": 3,
+      "query_id": "67",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-42-b92cc2e11f26456e99f128de7d2209d9"
+    },
+    {
+      "cost_usd": 0.0033444193434696377,
+      "latency_ms": 27970.426211017184,
+      "n_holdings": 3,
+      "query_id": "161",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-43-34f96091418e4ac9b4577686e83ea70f"
+    },
+    {
+      "cost_usd": 0.0030105886365525327,
+      "latency_ms": 28743.518028990366,
+      "n_holdings": 4,
+      "query_id": "2",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-44-c43fb3f06a4a4e2dbc05060576494333"
+    },
+    {
+      "cost_usd": 0.0030227563528982225,
+      "latency_ms": 26138.35921799182,
+      "n_holdings": 4,
+      "query_id": "43",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-45-220cf4e16a5c4b86bd5eb44c6bdbcf49"
+    },
+    {
+      "cost_usd": 0.0036511582130113263,
+      "latency_ms": 29788.436389004346,
+      "n_holdings": 4,
+      "query_id": "5",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-46-1d43191486b4404896b1347956e20548"
+    },
+    {
+      "cost_usd": 0.004872097574820014,
+      "latency_ms": 32410.30688601313,
+      "n_holdings": 4,
+      "query_id": "1",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-47-094d70a49bd345d28c26d8a190b1b506"
+    },
+    {
+      "cost_usd": 0.0037128970267059198,
+      "latency_ms": 31040.549707016908,
+      "n_holdings": 4,
+      "query_id": "13",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-48-b574641e0577445cb0399d9d3af46aaf"
+    },
+    {
+      "cost_usd": 0.0026574562119126197,
+      "latency_ms": 26590.746331989067,
+      "n_holdings": 4,
+      "query_id": "92",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-49-ccba7514acae489d927082c96eba95f8"
+    },
+    {
+      "cost_usd": 0.0029600505010044754,
+      "latency_ms": 28414.111174992286,
+      "n_holdings": 4,
+      "query_id": "78",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-50-35d416e82020426fb593952403b152d5"
+    },
+    {
+      "cost_usd": 0.004023187156199945,
+      "latency_ms": 30265.13560200692,
+      "n_holdings": 4,
+      "query_id": "37",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-51-ffa4b9dbf6d74e6285b20519c107edee"
+    },
+    {
+      "cost_usd": 0.005075662976969795,
+      "latency_ms": 27702.484139008448,
+      "n_holdings": 4,
+      "query_id": "31",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-52-9977df452e944e568db9d47fbe3feb72"
+    },
+    {
+      "cost_usd": 0.0032492315051143358,
+      "latency_ms": 24666.233855008613,
+      "n_holdings": 4,
+      "query_id": "195",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-53-381aef3e48234810b2e9f7440435de13"
+    },
+    {
+      "cost_usd": 0.0029121999785352544,
+      "latency_ms": 31062.634717993205,
+      "n_holdings": 4,
+      "query_id": "277",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-54-179d636de00a4d78b0d346737086c867"
+    },
+    {
+      "cost_usd": 0.0030233806085180953,
+      "latency_ms": 29365.841129008913,
+      "n_holdings": 4,
+      "query_id": "312",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-55-45f2ef3fb4174c81915bdea75b3810ec"
+    },
+    {
+      "cost_usd": 0.0037061291278788393,
+      "latency_ms": 32878.88247700175,
+      "n_holdings": 4,
+      "query_id": "80",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-56-2c0351e000504201aa61452519832f8d"
+    },
+    {
+      "cost_usd": 0.004795381648736253,
+      "latency_ms": 33357.414261001395,
+      "n_holdings": 4,
+      "query_id": "63",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-57-84d9ed5739ea4a73a2f2108c7a92f225"
+    },
+    {
+      "cost_usd": 0.004244567241734034,
+      "latency_ms": 30569.15554800071,
+      "n_holdings": 4,
+      "query_id": "133",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-58-b0d009d429d9411b8002d9bc3d9f7c2f"
+    },
+    {
+      "cost_usd": 0.003320509537420453,
+      "latency_ms": 33180.119459022535,
+      "n_holdings": 5,
+      "query_id": "39",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-59-4047d33d2a0f48f6a874d10b41845621"
+    },
+    {
+      "cost_usd": 0.003537670333576292,
+      "latency_ms": 32076.204882003367,
+      "n_holdings": 5,
+      "query_id": "84",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-60-b035bdf46d194e669f72f82625ca0dbb"
+    },
+    {
+      "cost_usd": 0.003959714662469318,
+      "latency_ms": 30010.85911199334,
+      "n_holdings": 5,
+      "query_id": "90",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-61-9f648f7ffd234fe686b720fff6e7a3cb"
+    },
+    {
+      "cost_usd": 0.007047692803546144,
+      "latency_ms": 34496.31617599516,
+      "n_holdings": 5,
+      "query_id": "33",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-62-40287c1043f143f696ce4aef43028587"
+    },
+    {
+      "cost_usd": 0.005996728287071295,
+      "latency_ms": 30854.850108007668,
+      "n_holdings": 5,
+      "query_id": "4",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-63-bc39d3b7d86a4a5a81c2637b12f5365c"
+    },
+    {
+      "cost_usd": 0.003609829919338922,
+      "latency_ms": 42178.24157499126,
+      "n_holdings": 5,
+      "query_id": "77",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-64-2fffe4f4301c428bb2842c82b60e1c26"
+    },
+    {
+      "cost_usd": 0.0033341720993125385,
+      "latency_ms": 25684.457785013365,
+      "n_holdings": 5,
+      "query_id": "314",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-65-a96b4404415745ae931ceaaeaf0632e5"
+    },
+    {
+      "cost_usd": 0.004158750641796856,
+      "latency_ms": 31692.757323005935,
+      "n_holdings": 5,
+      "query_id": "216",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-66-5f40926e9f9c43a7b0919bc5b8890115"
+    },
+    {
+      "cost_usd": 0.01655941810425057,
+      "latency_ms": 32515.530765987933,
+      "n_holdings": 5,
+      "query_id": "83",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-67-f3de7d8c26234e11a8e5f5be120d72f1"
+    },
+    {
+      "cost_usd": 0.0031040691989506434,
+      "latency_ms": 30181.91683999612,
+      "n_holdings": 5,
+      "query_id": "114",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-68-5f32cfb5d6e14a0090949e79490994fa"
+    },
+    {
+      "cost_usd": 0.003316893953586992,
+      "latency_ms": 29876.868844003184,
+      "n_holdings": 5,
+      "query_id": "162",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-69-9af2c797436042f59bc0a2373b6d3435"
+    },
+    {
+      "cost_usd": 0.004489378943600199,
+      "latency_ms": 44291.955547989346,
+      "n_holdings": 5,
+      "query_id": "603",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-70-0426812dba1a46e9b959c47da936f513"
+    },
+    {
+      "cost_usd": 0.017492905116514336,
+      "latency_ms": 24506.473971996456,
+      "n_holdings": 5,
+      "query_id": "95",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-71-7b725d9b468d41569ab7321ff7bfa606"
+    },
+    {
+      "cost_usd": 0.00447653227121254,
+      "latency_ms": 31026.27774598659,
+      "n_holdings": 5,
+      "query_id": "311",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-72-fdc523b4f0754c9696cc747423a623f8"
+    },
+    {
+      "cost_usd": 0.0034490657832394545,
+      "latency_ms": 33446.3658540044,
+      "n_holdings": 6,
+      "query_id": "120",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-73-05214fd5ed1247019dc356f45ff0c085"
+    },
+    {
+      "cost_usd": 0.004187969931819279,
+      "latency_ms": 35490.27787899831,
+      "n_holdings": 6,
+      "query_id": "413",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-74-3f3f32532cb14c2ca6f7c74b107f65f0"
+    },
+    {
+      "cost_usd": 0.004603763439507407,
+      "latency_ms": 32313.402058003703,
+      "n_holdings": 6,
+      "query_id": "76",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-75-c64a63d5bad54ed98d51dd2dbf1b593a"
+    },
+    {
+      "cost_usd": 0.015107469873832477,
+      "latency_ms": 46627.044221997494,
+      "n_holdings": 6,
+      "query_id": "131",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-76-37565cbb1d44469c8046da3b7a247bd0"
+    },
+    {
+      "cost_usd": 0.0040914515824062555,
+      "latency_ms": 21565.23617199855,
+      "n_holdings": 6,
+      "query_id": "116",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-77-8d7afecf7f70408fbc008212973e0264"
+    },
+    {
+      "cost_usd": 0.004095502518648611,
+      "latency_ms": 42153.56293899822,
+      "n_holdings": 6,
+      "query_id": "66",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-78-7ef2608fb57a471db1a2021942d1ee5b"
+    },
+    {
+      "cost_usd": 0.004654872094878894,
+      "latency_ms": 47046.10532999504,
+      "n_holdings": 6,
+      "query_id": "654",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-79-1c44933597c44e22aeacf35f3c971808"
+    },
+    {
+      "cost_usd": 0.0059954430403945476,
+      "latency_ms": 56954.45502799703,
+      "n_holdings": 6,
+      "query_id": "134",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-80-7d5385cd8ee546a78b470abfd232f90a"
+    },
+    {
+      "cost_usd": 0.005537458269458169,
+      "latency_ms": 24229.352198017295,
+      "n_holdings": 6,
+      "query_id": "49",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-81-3a7bb60459c04b8b91848ccfa771cc82"
+    },
+    {
+      "cost_usd": 0.0055754556355978955,
+      "latency_ms": 42133.746837003855,
+      "n_holdings": 6,
+      "query_id": "308",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-82-4f50f23228ef45bdb716f93959cb5b94"
+    },
+    {
+      "cost_usd": 0.0037729182289696316,
+      "latency_ms": 43812.04944400815,
+      "n_holdings": 6,
+      "query_id": "10",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-83-aff7470ebae44a01b0101f8c615f0eed"
+    },
+    {
+      "cost_usd": 0.004086940784641205,
+      "latency_ms": 38071.72605700907,
+      "n_holdings": 6,
+      "query_id": "42",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-84-aa6dc7c0602748a1b26ed8d14cb8c67b"
+    },
+    {
+      "cost_usd": 0.0052634001706052345,
+      "latency_ms": 39279.43554002559,
+      "n_holdings": 6,
+      "query_id": "188",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-85-ca2480fa819a4869bda46400b13d651b"
+    },
+    {
+      "cost_usd": 0.006635913742407775,
+      "latency_ms": 38767.61644598446,
+      "n_holdings": 6,
+      "query_id": "154",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-86-00ee76955ded4fa39ba5c20efa2b8dc1"
+    },
+    {
+      "cost_usd": 0.005109095126810439,
+      "latency_ms": 29438.224712997908,
+      "n_holdings": 6,
+      "query_id": "9",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-87-9382bf9090ac442fb66d81568e210229"
+    },
+    {
+      "cost_usd": 0.0019183164250665585,
+      "latency_ms": 18916.787563008256,
+      "n_holdings": 1,
+      "query_id": "22",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-88-f81014672e0e4385a4d1ef9067e09eeb"
+    },
+    {
+      "cost_usd": 0.0017092039786867227,
+      "latency_ms": 16378.616842004703,
+      "n_holdings": 1,
+      "query_id": "26",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-89-f317d9d268344219a758f90142f13a91"
+    },
+    {
+      "cost_usd": 0.0018296959920021674,
+      "latency_ms": 16037.164603010751,
+      "n_holdings": 1,
+      "query_id": "187",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-90-d899fe8bcb824c55ae0258585a61a8e7"
+    },
+    {
+      "cost_usd": 0.0021253951928879747,
+      "latency_ms": 17722.139703982975,
+      "n_holdings": 1,
+      "query_id": "193",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-91-b69c7c014ea440f6a83543e06a746ac3"
+    },
+    {
+      "cost_usd": 0.0016010210919251433,
+      "latency_ms": 13656.783140992047,
+      "n_holdings": 1,
+      "query_id": "761",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-92-f8953e8e5cce44c39595053533b22829"
+    },
+    {
+      "cost_usd": 0.0018840189004074102,
+      "latency_ms": 17355.208032997325,
+      "n_holdings": 1,
+      "query_id": "869",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-93-506712ed5e6c49a89a09cb1fdae61ef8"
+    },
+    {
+      "cost_usd": 0.001862588063138339,
+      "latency_ms": 16790.543243987486,
+      "n_holdings": 1,
+      "query_id": "179",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-94-c998362f6a8f4b07bb497b2f4b8df5e3"
+    },
+    {
+      "cost_usd": 0.0017752439360052383,
+      "latency_ms": 14163.281207002,
+      "n_holdings": 1,
+      "query_id": "117",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-95-d3d88b45f5ee437aa47fcf6b35136fae"
+    },
+    {
+      "cost_usd": 0.0017741584503773529,
+      "latency_ms": 16977.74086499703,
+      "n_holdings": 1,
+      "query_id": "234",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-96-68bc4cdabf78450297470291b829b778"
+    },
+    {
+      "cost_usd": 0.0018460754392867953,
+      "latency_ms": 17582.083777000662,
+      "n_holdings": 1,
+      "query_id": "747",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-97-6ab78ff401f44ae885f1a0888bd5719f"
+    },
+    {
+      "cost_usd": 0.0021455239837093734,
+      "latency_ms": 19161.442871991312,
+      "n_holdings": 1,
+      "query_id": "477",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-98-6d955c08c7274f8bb571113784d9a13b"
+    },
+    {
+      "cost_usd": 0.002600456787089692,
+      "latency_ms": 28379.483129974687,
+      "n_holdings": 2,
+      "query_id": "55",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-99-09f3dfa0d0b94bc49fced30fe4dad62a"
+    },
+    {
+      "cost_usd": 0.002719310395875381,
+      "latency_ms": 22536.851949989796,
+      "n_holdings": 2,
+      "query_id": "54",
+      "request_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z-100-c72f467e373642e597bcd26f572cc5f4"
+    }
+  ],
+  "run_id": "NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z"
+}
