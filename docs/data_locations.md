@@ -42,22 +42,29 @@ Companion docs:
 
 ## Committed Submission Evidence
 
-The successful submission snapshots are committed under:
+Successful submission snapshots are committed under:
 
 ```text
 submission_artifacts/single_request/
 submission_artifacts/sampled_10/
 submission_artifacts/canonical_100_c2/
+submission_artifacts/canonical_100_c2_recorded/
 ```
 
-The primary 100-query evidence is:
+The **primary reviewer bundle** is the exact 100-query C2 run shown in the two
+new silent videos:
 
-- [artifact bundle](../submission_artifacts/canonical_100_c2/)
-- [actual API responses](../submission_artifacts/canonical_100_c2/raw/requests.jsonl)
-- [derived metrics](../submission_artifacts/canonical_100_c2/analytics/metrics.json)
-- [serving telemetry](../submission_artifacts/canonical_100_c2/analytics/serving_telemetry.json)
-- [frozen Jaeger/Prometheus telemetry](../submission_artifacts/canonical_100_c2/telemetry/)
-- [static report](../submission_artifacts/canonical_100_c2/analytics/report/index.html)
+- [recorded C2 artifact bundle](../submission_artifacts/canonical_100_c2_recorded/)
+- [run identity and 100/100 result](../submission_artifacts/canonical_100_c2_recorded/raw/run.json)
+- [actual API responses](../submission_artifacts/canonical_100_c2_recorded/raw/requests.jsonl)
+- [derived metrics](../submission_artifacts/canonical_100_c2_recorded/analytics/metrics.json)
+- [serving telemetry](../submission_artifacts/canonical_100_c2_recorded/analytics/serving_telemetry.json)
+- [frozen Jaeger/Prometheus telemetry](../submission_artifacts/canonical_100_c2_recorded/telemetry/)
+- [static report](../submission_artifacts/canonical_100_c2_recorded/analytics/report/index.html)
+
+A second independent successful C2 run is retained at
+[`submission_artifacts/canonical_100_c2/`](../submission_artifacts/canonical_100_c2/)
+as repeatability evidence.
 
 These committed artifacts are intended for reviewer inspection without rerunning
 the stack.
