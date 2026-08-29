@@ -2,17 +2,30 @@
 
 ## Submission Deliverables
 
+**Recommended starting point:** the first two videos are silent recordings of the **same successful 100-query C2 run** (`NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z`). Video 1 captures the beginning/live execution; Video 2 captures the completed run and generated analytics. The matching frozen artifacts are committed directly in this repository.
+
+### Videos
+
+| Video | Link | Detailed description |
+| --- | --- | --- |
+| **1. Silent C2 Demo: Experiment Start + Live Execution** | https://www.loom.com/share/056bc8e3026a4d5e9b4a857cdd1d8a46 | **No audio.** Recorded at the beginning of the video-matched `canonical_100` experiment. Shows the C2 configuration (`concurrency=2`, noncanonical CPU mode, 300s request timeout), experiment launch, and the live system/observability view while the 100-query run is in progress. |
+| **2. Silent C2 Demo: Completed Run + Analytics** | https://www.loom.com/share/96c09d837d554460b71b706ba0ea759b | **No audio.** Recorded after the same C2 experiment completed successfully. Shows the completed run, generated analytics/report, and post-run evidence for the exact run whose raw responses, telemetry, metrics, Parquet tables, and report are committed under `submission_artifacts/canonical_100_c2_recorded/`. |
+| 3. Earlier Observability Walkthrough | https://www.loom.com/share/09aa634896924681a12b7d8f8015b522 | Supporting walkthrough of the experiment/observability workflow, including collected experiment data, Grafana, Jaeger, and benchmark/system views. Use Videos 1 and 2 above as the verified C2 run evidence. |
+| 4. Analytics, Cost, and Metrics Walkthrough | https://www.loom.com/share/cfeac9f3be104d09a5ee32ab0db3d379 | Walkthrough of the generated analytics report, cost-attribution model, operational metric meaning, Jaeger request drilldown, and how the illustrative CPU cost model would be replaced with real GPU/provider cost inputs. |
+
+### Evidence and Documentation
+
 | Deliverable | Location | What it shows |
 | --- | --- | --- |
-| Loom 1 | https://www.loom.com/share/09aa634896924681a12b7d8f8015b522 | Experiment run, collected data, live observability, Grafana, Jaeger, and benchmark output |
-| Loom 2 | https://www.loom.com/share/cfeac9f3be104d09a5ee32ab0db3d379 | Generated analytics report, cost model, metric meaning, Jaeger drilldown, and how the CPU demo cost model maps to a real GPU deployment |
-| **Verified 100-query artifact bundle** | [submission_artifacts/canonical_100_c2/](submission_artifacts/canonical_100_c2/) | Primary submission evidence: `canonical_100`, concurrency 2, 100/100 successful |
-| **100-query static report** | [report/index.html](submission_artifacts/canonical_100_c2/analytics/report/index.html) | Frozen reviewer-facing analytics and charts for the verified 100-query run |
-| **100-query raw API responses** | [requests.jsonl](submission_artifacts/canonical_100_c2/raw/requests.jsonl) | Actual Gateway responses, including model-generated Advisor output |
-| **100-query derived metrics** | [metrics.json](submission_artifacts/canonical_100_c2/analytics/metrics.json) | Cost, latency, success, agent, inference, and serving metrics |
+| **Primary recorded 100-query C2 bundle** | [submission_artifacts/canonical_100_c2_recorded/](submission_artifacts/canonical_100_c2_recorded/) | Exact run shown in Videos 1 and 2: `canonical_100`, concurrency 2, **100/100 successful** |
+| **Recorded-run static report** | [report/index.html](submission_artifacts/canonical_100_c2_recorded/analytics/report/index.html) | Frozen HTML/SVG analytics report for the video-matched run |
+| **Recorded-run raw API responses** | [requests.jsonl](submission_artifacts/canonical_100_c2_recorded/raw/requests.jsonl) | Actual Gateway responses, including model-generated Advisor output |
+| **Recorded-run derived metrics** | [metrics.json](submission_artifacts/canonical_100_c2_recorded/analytics/metrics.json) | Cost/query distribution, agent cost attribution, and derived run metrics |
+| **Recorded-run serving telemetry** | [serving_telemetry.json](submission_artifacts/canonical_100_c2_recorded/analytics/serving_telemetry.json) | Inference latency, vLLM running/waiting requests, throughput, TTFT/TPOT, KV cache, and preemptions |
+| **Additional verified 100-query C2 bundle** | [submission_artifacts/canonical_100_c2/](submission_artifacts/canonical_100_c2/) | Independent earlier `canonical_100`, concurrency 2 run with **100/100 successful**, retained as repeatability evidence |
 | 10-query integration artifacts | [submission_artifacts/sampled_10/](submission_artifacts/sampled_10/) | 10/10 successful rehearsal of benchmark -> telemetry -> analytics -> report |
 | Single-request validation | [submission_artifacts/single_request/](submission_artifacts/single_request/) | Fixed request/run/query IDs and live end-to-end validation scope |
-| Successful experiment record | [docs/experiment_results.md](docs/experiment_results.md) | Verified single-request, 10-query, and 100-query CPU evidence |
+| Successful experiment record | [docs/experiment_results.md](docs/experiment_results.md) | Canonical record of all successful submission experiments and their measurements |
 | Architecture overview | [docs/architecture/overview.md](docs/architecture/overview.md) | Main request path and component boundaries |
 | Metrics reference | [docs/metrics_reference.md](docs/metrics_reference.md) | What each metric measures, why it matters operationally, source, scope, and caveats |
 | Cost methodology | [docs/cost_methodology.md](docs/cost_methodology.md) | Cost pools, token weighting, overhead, attribution, and assumptions |
@@ -20,7 +33,7 @@
 | Demo diagrams | [docs/demo1_diagrams.md](docs/demo1_diagrams.md) | Mermaid diagrams used to explain the system and observability flow |
 | Experiment scripts | [deploy/experiments/phase9_observability_demo.sh](deploy/experiments/phase9_observability_demo.sh) | Commands for single-request, 10-query, and verified 100-query CPU runs |
 
-**Recommended reviewer path:** Loom demos -> verified 100-query report and raw responses -> experiment results -> metrics/cost methodology -> architecture and tradeoffs.
+**Fast reviewer path:** Videos 1 and 2 -> matching recorded C2 report/raw responses -> experiment results -> metrics/cost methodology -> architecture and tradeoffs.
 
 This repository turns the supplied multi-agent portfolio workflow into a
 reviewable serving and benchmarking system. It adds a Gateway, Portfolio API,
@@ -119,13 +132,16 @@ See [docs/experiment_results.md](docs/experiment_results.md) for the canonical r
 
 | Run | Dataset | Concurrency | Result | Committed evidence |
 | --- | --- | --- | --- | --- |
-| `NONCANONICAL_CPU_INTEGRATION_SINGLE` | one request | 1 | completed manually | [single_request](submission_artifacts/single_request/) |
+| `NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z` | `canonical_100` | 2 | **100/100 successful** | [canonical_100_c2_recorded](submission_artifacts/canonical_100_c2_recorded/) - exact run shown in Videos 1 and 2 |
+| `NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z` | `canonical_100` | 2 | **100/100 successful** | [canonical_100_c2](submission_artifacts/canonical_100_c2/) - independent earlier successful run |
 | `NONCANONICAL_CPU_INTEGRATION-20260828T205107Z` | `sampled_10`, seed 81 | 2 | 10/10 successful | [sampled_10](submission_artifacts/sampled_10/) |
-| `NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z` | `canonical_100` | 2 | **100/100 successful** | [canonical_100_c2](submission_artifacts/canonical_100_c2/) |
+| `NONCANONICAL_CPU_INTEGRATION_SINGLE` | one request | 1 | completed manually | [single_request](submission_artifacts/single_request/) |
 
-The submission intentionally uses the verified C2 100-query run as the CPU
-baseline. The local CPU environment is for integration and observability, not
-capacity characterization.
+Two independent C2 100-query CPU runs are committed and both completed 100/100.
+The newer recorded run is the primary reviewer evidence because it matches the
+silent C2 videos exactly; the earlier C2 bundle is retained as independent
+repeatability evidence. The local CPU environment is for integration and
+observability, not capacity characterization.
 
 ## Cost Attribution
 
@@ -164,23 +180,28 @@ The run script executes benchmark traffic, exports telemetry, builds analytics,
 calculates costs, writes Parquet/PostgreSQL artifacts, renders the static report,
 verifies expected files, and prints the resulting `RUN_ID` and report path.
 
+The recorded C2 run used a 300-second request timeout because local CPU inference
+is substantially slower than the intended GPU deployment. The request timeout is
+an execution budget, not a performance target.
+
 ### Local CPU Hardware And Timeout Scope
 
 The CPU path is intentionally conservative. CPU inference is much slower than
 the target GPU deployment, and one request crosses multiple bounded layers:
 benchmark client -> Gateway downstream request -> Portfolio inference -> vLLM.
 Those timeout budgets must be calibrated together when testing higher offered
-load. The verified submission result therefore uses concurrency 2, where the
+load. The verified submission results therefore use concurrency 2, where the
 100-query workload completes cleanly. Capacity and saturation testing belongs on
 the canonical GPU path with production-like timeout and admission settings.
 
 ## Committed Submission Evidence
 
-The repository includes frozen evidence for the successful runs under
-[`submission_artifacts/`](submission_artifacts/). The primary reviewer bundle is:
+The repository includes frozen evidence for every successful submission run
+under [`submission_artifacts/`](submission_artifacts/). The primary reviewer
+bundle, matching Videos 1 and 2, is:
 
 ```text
-submission_artifacts/canonical_100_c2/
+submission_artifacts/canonical_100_c2_recorded/
 ├── README.md
 ├── raw/
 │   ├── requests.jsonl
@@ -200,15 +221,17 @@ submission_artifacts/canonical_100_c2/
     └── report/index.html
 ```
 
-These files are committed so the verified run can be inspected without rerunning
-the local stack. New experiments continue to write their complete working
-artifacts under the ignored local `results/phase8/` tree.
+An independent earlier successful C2 snapshot is retained at
+[`submission_artifacts/canonical_100_c2/`](submission_artifacts/canonical_100_c2/).
+These committed files let a reviewer inspect both successful 100-query runs
+without rerunning the local stack. New experiments continue to write their
+working artifacts under the ignored local `results/phase8/` tree.
 
 ## Viewing Actual Generated Advice
 
-The committed 100-query response file is:
+The raw response file for the exact run shown in Videos 1 and 2 is:
 
-[`submission_artifacts/canonical_100_c2/raw/requests.jsonl`](submission_artifacts/canonical_100_c2/raw/requests.jsonl)
+[`submission_artifacts/canonical_100_c2_recorded/raw/requests.jsonl`](submission_artifacts/canonical_100_c2_recorded/raw/requests.jsonl)
 
 For example:
 
@@ -216,7 +239,7 @@ For example:
 import json
 from pathlib import Path
 
-path = Path("submission_artifacts/canonical_100_c2/raw/requests.jsonl")
+path = Path("submission_artifacts/canonical_100_c2_recorded/raw/requests.jsonl")
 
 for line in path.read_text().splitlines():
     row = json.loads(line)
@@ -243,18 +266,24 @@ Useful `inference.request` fields include model, prompt tokens, completion token
 
 ## Key Findings
 
-For the verified 100-query CPU run `NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z`:
+For the video-matched 100-query CPU run `NONCANONICAL_CPU_CANONICAL_100_C2-20260829T020534Z`:
 
-- 100 requests attempted, 100 successful, 0 failures.
-- Total illustrative CPU-demo cost: `$0.355583`.
-- Mean cost/query: `$0.003556`.
-- p95 cost/query: `$0.006664`.
-- vLLM running requests maxed at 2, matching client concurrency.
-- vLLM waiting requests stayed at 0.
-- vLLM preemptions stayed at 0.
+- 100 requests attempted, **100 successful, 0 failures**.
+- Total illustrative CPU-demo cost: `$0.375744`.
+- Mean cost/query: `$0.003757`.
+- Median cost/query: `$0.003052`.
+- p95 cost/query: `$0.006657`.
+- p99 cost/query: `$0.016569`.
+- Inference span latency: p50 about `26.40 s`, p95 about `40.53 s`.
+- vLLM running requests maxed at `2`, matching client concurrency.
+- vLLM waiting requests stayed at `0`.
+- vLLM preemptions stayed at `0`.
+- Maximum observed generation throughput was about `12.59 tokens/s`.
 - The report and traces show Advisor/inference latency dominates this CPU demo.
 
-These are CPU integration findings, not production GPU performance claims.
+The earlier committed C2 run independently completed 100/100 as well. These are
+CPU integration findings and reproducibility evidence, not production GPU
+performance claims.
 
 ## CPU Demo Vs Canonical GPU
 
