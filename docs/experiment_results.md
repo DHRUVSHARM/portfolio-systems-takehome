@@ -1,8 +1,9 @@
 # Experiment Results
 
 This file is the canonical record of successful experiments included in the
-submission. All listed benchmark numbers were checked against local artifacts
-under `results/phase8`.
+submission. The successful benchmark artifacts are committed under
+[`submission_artifacts/`](../submission_artifacts/) so the evidence can be
+reviewed without rerunning the local stack.
 
 `canonical_100` below means the benchmark dataset mode. The runs are still
 noncanonical CPU runs using `Qwen/Qwen3-0.6B`, not canonical GPU performance
@@ -10,11 +11,11 @@ measurements.
 
 ## Included Runs
 
-| Run ID | Dataset | Concurrency | Model | Result | Purpose |
+| Run ID | Dataset | Concurrency | Model | Result | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `NONCANONICAL_CPU_INTEGRATION_SINGLE` | one request | 1 | `Qwen/Qwen3-0.6B` | completed manually | Verify workflow, Jaeger trace, correlation IDs, inference tags, and actual API response |
-| `NONCANONICAL_CPU_INTEGRATION-20260828T205107Z` | `sampled_10`, seed 81 | 2 | `Qwen/Qwen3-0.6B` | 10 successful, 0 failed | Validate benchmark -> telemetry -> analytics -> report pipeline |
-| `NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z` | `canonical_100` | 2 | `Qwen/Qwen3-0.6B` | 100 successful, 0 failed | Required 100-query CPU baseline |
+| `NONCANONICAL_CPU_INTEGRATION_SINGLE` | one request | 1 | `Qwen/Qwen3-0.6B` | completed manually | [single-request validation](../submission_artifacts/single_request/) |
+| `NONCANONICAL_CPU_INTEGRATION-20260828T205107Z` | `sampled_10`, seed 81 | 2 | `Qwen/Qwen3-0.6B` | 10 successful, 0 failed | [10-query artifacts](../submission_artifacts/sampled_10/) |
+| `NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z` | `canonical_100` | 2 | `Qwen/Qwen3-0.6B` | **100 successful, 0 failed** | [100-query artifacts](../submission_artifacts/canonical_100_c2/) |
 
 ## Single Request
 
@@ -42,6 +43,9 @@ Jaeger search:
 {"run_id":"NONCANONICAL_CPU_INTEGRATION_SINGLE","request_id":"cpu-rehearsal-single"}
 ```
 
+The fixed validation details are preserved in
+[`submission_artifacts/single_request/README.md`](../submission_artifacts/single_request/README.md).
+
 ## 10-Query Rehearsal
 
 Run ID: `NONCANONICAL_CPU_INTEGRATION-20260828T205107Z`
@@ -67,14 +71,15 @@ Verified observations:
 - vLLM max waiting requests: `0`.
 - vLLM max preemptions: `0`.
 
-Artifacts:
+Committed artifacts:
 
 | Type | Path |
 | --- | --- |
-| Raw | `results/phase8/raw/NONCANONICAL_CPU_INTEGRATION-20260828T205107Z/` |
-| Telemetry | `results/phase8/telemetry/NONCANONICAL_CPU_INTEGRATION-20260828T205107Z/` |
-| Analytics | `results/phase8/analytics/NONCANONICAL_CPU_INTEGRATION-20260828T205107Z/` |
-| Report | `results/phase8/analytics/NONCANONICAL_CPU_INTEGRATION-20260828T205107Z/report/index.html` |
+| Bundle | [`submission_artifacts/sampled_10/`](../submission_artifacts/sampled_10/) |
+| Raw responses | [`raw/requests.jsonl`](../submission_artifacts/sampled_10/raw/requests.jsonl) |
+| Telemetry | [`telemetry/`](../submission_artifacts/sampled_10/telemetry/) |
+| Metrics | [`analytics/metrics.json`](../submission_artifacts/sampled_10/analytics/metrics.json) |
+| Report | [`analytics/report/index.html`](../submission_artifacts/sampled_10/analytics/report/index.html) |
 
 ## Required 100-Query C2 Baseline
 
@@ -107,14 +112,21 @@ Verified observations:
 - vLLM max preemptions: `0`.
 - vLLM generation throughput max observed: `13.40 tokens/s`.
 
-Artifacts:
+Committed artifacts:
 
 | Type | Path |
 | --- | --- |
-| Raw | `results/phase8/raw/NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z/` |
-| Telemetry | `results/phase8/telemetry/NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z/` |
-| Analytics | `results/phase8/analytics/NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z/` |
-| Report | `results/phase8/analytics/NONCANONICAL_CPU_CANONICAL_100_C2-20260828T213917Z/report/index.html` |
+| Bundle | [`submission_artifacts/canonical_100_c2/`](../submission_artifacts/canonical_100_c2/) |
+| Raw responses | [`raw/requests.jsonl`](../submission_artifacts/canonical_100_c2/raw/requests.jsonl) |
+| Resolved benchmark config | [`raw/resolved_benchmark_config.yaml`](../submission_artifacts/canonical_100_c2/raw/resolved_benchmark_config.yaml) |
+| Frozen Jaeger/Prometheus telemetry | [`telemetry/`](../submission_artifacts/canonical_100_c2/telemetry/) |
+| Derived metrics | [`analytics/metrics.json`](../submission_artifacts/canonical_100_c2/analytics/metrics.json) |
+| Run summary | [`analytics/report.json`](../submission_artifacts/canonical_100_c2/analytics/report.json) |
+| Serving telemetry | [`analytics/serving_telemetry.json`](../submission_artifacts/canonical_100_c2/analytics/serving_telemetry.json) |
+| Static report | [`analytics/report/index.html`](../submission_artifacts/canonical_100_c2/analytics/report/index.html) |
+
+The bundle also includes Parquet tables for request, execution, inference,
+resource, and cost-attribution analysis.
 
 ## Local CPU Scope
 
@@ -132,10 +144,9 @@ traces, cost attribution, and generated report.
 
 ## Raw Generated Advice
 
-Actual model-generated Advisor output is stored in each successful raw run:
+Actual model-generated Advisor output from the primary 100-query run is directly
+available at:
 
-```text
-results/phase8/raw/<RUN_ID>/requests.jsonl
-```
+[`submission_artifacts/canonical_100_c2/raw/requests.jsonl`](../submission_artifacts/canonical_100_c2/raw/requests.jsonl)
 
-Each successful row contains `response_body.summary`.
+Each successful row contains the response body and generated Advisor summary.
